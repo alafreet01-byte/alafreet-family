@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { familyMembers } from "../data/members";
+import MemberAvatar from "../components/MemberAvatar";
+export default function Page(){return <main dir="rtl" className="min-h-screen bg-[#01030b] p-6 text-white"><div className="mx-auto max-w-7xl"><div className="text-center"><p className="text-cyan-300">ALAFREET UNIVERSE</p><h1 className="mt-3 text-5xl font-black">عالم عائلة خليفة</h1><p className="mt-4 text-slate-400">وضع العرض العائلي</p><Link href="/dashboard" className="mt-6 inline-block rounded-2xl bg-cyan-600 px-6 py-4 font-black">دخول لوحة التحكم</Link></div><div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{familyMembers.map(m=><div key={m.id} className="rounded-[36px] border border-white/10 bg-white/5 p-6"><MemberAvatar member={m}/><h2 className="mt-5 text-2xl font-black">{m.name}</h2><p className="text-cyan-300">{m.world}</p><p className="mt-3 text-slate-400">{m.description}</p></div>)}</div></div></main>}

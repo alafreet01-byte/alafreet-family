@@ -1,0 +1,4 @@
+"use client";
+import { useState } from "react";
+import AppShell from "../components/AppShell";
+export default function Page(){const [q,setQ]=useState('');const [a,setA]=useState('مرحبًا خليفة، أنا مساعد العائلة المحلي.');return <AppShell title="المساعد الذكي" subtitle="نسخة تجريبية محلية"><div className="rounded-3xl border border-white/10 bg-white/5 p-6"><div className="min-h-60 rounded-3xl bg-black/20 p-5 leading-8 text-slate-300">{a}</div><div className="mt-4 flex gap-3"><input value={q} onChange={e=>setQ(e.target.value)} placeholder="اكتب طلبك..." className="flex-1 rounded-2xl border border-white/10 bg-black/30 p-4 outline-none"/><button onClick={()=>{if(q.trim()){setA(`فهمت طلبك: «${q.trim()}». ربط الذكاء الاصطناعي الحقيقي سيكون بعد إضافة مفتاح API.`);setQ('')}}} className="rounded-2xl bg-purple-600 px-6 font-black">إرسال</button></div></div></AppShell>}

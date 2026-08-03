@@ -1,0 +1,4 @@
+import AppShell from "../components/AppShell";
+import { familyMembers } from "../data/members";
+function fmt(s:string){const d=new Date(`${s}T00:00:00`);return new Intl.DateTimeFormat('ar-AE',{day:'numeric',month:'long'}).format(d)}
+export default function Page(){return <AppShell title="التقويم العائلي" subtitle="المناسبات والتواريخ المهمة"><div className="space-y-4"><div className="rounded-3xl border border-purple-400/20 bg-purple-500/10 p-6"><h2 className="text-2xl font-black">💍 ذكرى زواج الوالدين</h2><p className="mt-2 text-slate-300">23 أغسطس</p></div>{familyMembers.map(m=><div key={m.id} className="flex items-center justify-between rounded-3xl border border-white/10 bg-white/5 p-5"><div><h3 className="font-black">🎂 عيد ميلاد {m.name}</h3><p className="mt-1 text-sm text-slate-400">{fmt(m.birthday)}</p></div><span className="text-2xl">{m.icon}</span></div>)}</div></AppShell>}

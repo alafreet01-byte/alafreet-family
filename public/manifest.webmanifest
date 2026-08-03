@@ -1,0 +1,17 @@
+{
+  "name": "Alafreet Family",
+  "short_name": "Alafreet",
+  "description": "النظام العائلي الذكي لعائلة خليفة",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
