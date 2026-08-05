@@ -73,7 +73,8 @@ export async function GET() {
     );
   }
 
-  const { data, error } = await auth.supabase
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from("family_members")
     .select(
       "id, name_ar, name_en, username, role, grade, school_system, color, auth_user_id, created_at",
@@ -84,7 +85,26 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  return NextResponse.json({ members: data ?? [] });
+  const [{ data: authUsers }, { data: activity }] = await Promise.all([
+    admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+    admin.from("core_events")
+      .select("id, event_type, title, details, actor_id, target_id, metadata, created_at")
+      .order("created_at", { ascending: false })
+      .limit(250),
+  ]);
+
+  const authMap = new Map((authUsers?.users ?? []).map((user) => [user.id, user]));
+  const members = (data ?? []).map((member) => {
+    const user = member.auth_user_id ? authMap.get(member.auth_user_id) : null;
+    return {
+      ...member,
+      auth_created_at: user?.created_at ?? null,
+      last_sign_in_at: user?.last_sign_in_at ?? null,
+      auth_updated_at: user?.updated_at ?? null,
+    };
+  });
+
+  return NextResponse.json({ members, activity: activity ?? [] });
 }
 
 export async function POST(request: Request) {
