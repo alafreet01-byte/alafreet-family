@@ -1,0 +1,3 @@
+export default function MaintenancePage() {
+  return <main dir="rtl" className="flex min-h-screen items-center justify-center bg-[#02030a] p-6 text-white"><section className="w-full max-w-xl rounded-[36px] border border-amber-200/15 bg-amber-300/[.05] p-10 text-center"><div className="text-7xl">🛠️</div><p className="mt-6 text-xs font-black tracking-[.3em] text-amber-200/60">ALAFREET FAMILY OS</p><h1 className="mt-3 text-4xl font-black">الموقع تحت الصيانة</h1><p className="mt-4 leading-8 text-white/55">نعمل الآن على تحديث النظام وتحسينه. ارجع بعد دقائق قليلة وستفتح لك أحدث نسخة تلقائيًا.</p></section></main>;
+}

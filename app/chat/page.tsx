@@ -9,11 +9,11 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import AppShell from "../components/AppShell";
 import MemberAvatar from "../components/MemberAvatar";
 import { familyMembers } from "../data/members";
 import type { FamilyMember } from "../types";
 import { createClient } from "../../lib/supabase/client";
+import VideoCallPanel from "./VideoCallPanel";
 
 type MediaType = "image" | "video" | "audio";
 
@@ -43,6 +43,7 @@ type Room = {
   name: string;
   icon: string;
   description: string;
+  allowedMembers?: string[];
 };
 
 const rooms: Room[] = [
@@ -56,13 +57,21 @@ const rooms: Room[] = [
     id: "girls",
     name: "قروب البنات",
     icon: "👩‍👧‍👧",
-    description: "الأم والبنات",
+    description: "الأب والأم والبنات",
+    allowedMembers: ["khalifa", "mother", "reem", "aisha", "fatima"],
   },
   {
     id: "boys",
     name: "قروب الأولاد",
     icon: "👨‍👦‍👦",
     description: "الأب والأولاد",
+    allowedMembers: ["khalifa", "khalid", "ahmed", "saud", "mohammed"],
+  },
+  {
+    id: "status",
+    name: "الحالات",
+    icon: "◉",
+    description: "صور وفيديوهات العائلة",
   },
 ];
 
@@ -102,6 +111,7 @@ export default function ChatPage() {
   const [searchText, setSearchText] = useState("");
 
   const [recording, setRecording] = useState(false);
+  const [videoCallOpen, setVideoCallOpen] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
 
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -619,7 +629,12 @@ export default function ChatPage() {
         : selectedMember?.name ?? "";
 
   return (
-    <AppShell title="المحادثات" subtitle="رسائل العائلة">
+    <main dir="rtl" className="min-h-screen bg-[#03040a] px-4 py-6 text-white sm:px-6">
+      <div className="mx-auto max-w-7xl">
+      <header className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-emerald-200/10 bg-emerald-300/[.04] p-5">
+        <div><p className="text-xs font-black tracking-[.25em] text-emerald-200/55">ALAFREET FAMILY CHAT</p><h1 className="mt-2 text-3xl font-black">الواتساب العائلي</h1><p className="mt-1 text-sm text-white/40">محادثات العائلة الخاصة والآمنة</p></div>
+        <button type="button" onClick={() => router.push("/v9/home")} className="rounded-2xl border border-white/10 px-5 py-3 font-black">البيت الرقمي</button>
+      </header>
       <div className="mb-4 flex justify-end">
         <button
           type="button"
@@ -635,7 +650,7 @@ export default function ChatPage() {
           <h2 className="px-2 text-lg font-black">القروبات</h2>
 
           <div className="mt-4 space-y-2">
-            {rooms.map((room) => (
+            {rooms.filter((room) => !room.allowedMembers || room.allowedMembers.includes(currentMemberKey)).map((room) => (
               <button
                 key={room.id}
                 type="button"
@@ -730,6 +745,7 @@ export default function ChatPage() {
               >
                 🔎 بحث
               </button>
+              <button type="button" onClick={() => setVideoCallOpen(true)} className="rounded-2xl bg-emerald-400/15 px-4 py-3 font-black text-emerald-200">📹 مكالمة فيديو</button>
             </div>
 
             {searchOpen && (
@@ -912,7 +928,9 @@ export default function ChatPage() {
           </div>
         </section>
       </div>
-    </AppShell>
+      {videoCallOpen && <VideoCallPanel supabase={supabase} roomId={activeRoomId} name={currentDisplayName} onClose={() => setVideoCallOpen(false)} />}
+      </div>
+    </main>
   );
 }
 
