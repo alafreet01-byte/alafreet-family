@@ -138,6 +138,27 @@ export default function HomeEnginePage() {
     [calendarEvents, now],
   );
 
+  const miniCalendar = useMemo(() => {
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const firstWeekday = new Date(year, month, 1).getDay();
+    const numberOfDays = new Date(year, month + 1, 0).getDate();
+    const eventDays = new Set(
+      calendarEvents
+        .map((event) => new Date(event.startsAt))
+        .filter((date) => date.getFullYear() === year && date.getMonth() === month)
+        .map((date) => date.getDate()),
+    );
+    return {
+      label: new Intl.DateTimeFormat("ar-AE", { month: "long", year: "numeric" }).format(now),
+      cells: [
+        ...Array.from({ length: firstWeekday }, () => null),
+        ...Array.from({ length: numberOfDays }, (_, index) => index + 1),
+      ],
+      eventDays,
+    };
+  }, [calendarEvents, now]);
+
   const nextPrayer = useMemo(() => getNextPrayer(now, prayer), [now, prayer]);
 
   return (
@@ -202,6 +223,33 @@ export default function HomeEnginePage() {
                   <span className="rounded-full bg-violet-300/10 px-3 py-1 text-[10px] font-bold text-violet-100">التقويم</span>
                 </div>
                 <p className="mt-4 text-xs font-bold text-violet-200/55">الموعد القادم</p>
+                <div className="mt-3 rounded-2xl border border-white/8 bg-black/20 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <strong className="text-sm text-violet-100">{miniCalendar.label}</strong>
+                    <span className="text-[9px] text-white/35">● يوم فيه موعد</span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[9px] text-white/35">
+                    {["ح", "ن", "ث", "ر", "خ", "ج", "س"].map((day) => <span key={day}>{day}</span>)}
+                  </div>
+                  <div className="mt-2 grid grid-cols-7 gap-1 text-center text-[10px]">
+                    {miniCalendar.cells.map((day, index) => (
+                      <span
+                        key={`${day ?? "empty"}-${index}`}
+                        className={`mx-auto flex h-7 w-7 items-center justify-center rounded-full border ${
+                          day === null
+                            ? "border-transparent"
+                            : miniCalendar.eventDays.has(day)
+                              ? "border-violet-300 bg-violet-300/20 font-black text-violet-50 shadow-[0_0_12px_rgba(196,181,253,.28)]"
+                              : day === now.getDate()
+                                ? "border-amber-300/50 bg-amber-300/10 text-amber-100"
+                                : "border-transparent text-white/55"
+                        }`}
+                      >
+                        {day}
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 {nextCalendarEvent ? (
                   <>
                     <h3 className="mt-2 text-xl font-black">{nextCalendarEvent.title}</h3>
