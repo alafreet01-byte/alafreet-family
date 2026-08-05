@@ -712,6 +712,10 @@ export default function ChatPage() {
           </h2>
 
           <div className="mt-4 space-y-2">
+            <div className="flex w-full items-center gap-3 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-3 text-right">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-300 text-lg font-black text-black">{currentDisplayName.slice(0, 1)}</div>
+              <div><p className="font-black">{currentDisplayName}</p><p className="text-xs text-emerald-200">أنت الآن • متصل</p></div>
+            </div>
             {familyMembers
               .filter((member) => member.id !== currentMemberKey)
               .map((member) => (
