@@ -194,14 +194,22 @@ export default function ChatPage() {
         .eq("id", user.id)
         .maybeSingle();
 
-      const memberKey = profile?.member_key || "khalifa";
+      const { data: linkedMember } = await supabase
+        .from("family_members")
+        .select("id, name_ar")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+
+      const memberKey = linkedMember?.id === "amal"
+        ? "mother"
+        : linkedMember?.id || profile?.member_key || "khalifa";
       const displayName =
-        profile?.display_name || user.email?.split("@")[0] || "خليفة";
+        linkedMember?.name_ar || profile?.display_name || user.email?.split("@")[0] || "خليفة";
 
       setCurrentMemberKey(memberKey);
       setCurrentDisplayName(displayName);
 
-      if (!profile?.member_key) {
+      if (profile?.member_key !== memberKey || profile?.display_name !== displayName) {
         await supabase
           .from("profiles")
           .update({
