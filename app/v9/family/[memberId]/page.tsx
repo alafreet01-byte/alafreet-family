@@ -134,11 +134,14 @@ export default function MemberProfilePage() {
 
   const isAisha = member.id === "aisha";
   const isReem = member.id === "reem";
+  const isAhmed = member.id === "ahmed";
   const illustratedBackground = isAisha
     ? "/v9/backgrounds/aisha-garden-v1.png"
     : isReem
       ? "/v9/backgrounds/reem-art-studio-v1.png"
-      : "";
+      : isAhmed
+        ? "/v9/backgrounds/ahmed-warrior-valley-v1.png"
+        : "";
 
   return (
     <main
