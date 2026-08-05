@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const BUCKET = "family-chat-v2";
-const MAX_SIZE = 20 * 1024 * 1024;
+const MAX_SIZE = 50 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/quicktime", "audio/mpeg", "audio/mp4", "audio/webm"]);
 const GIRLS = new Set(["khalifa", "amal", "reem", "aisha", "fatima"]);
 const BOYS = new Set(["khalifa", "ahmed", "khalid", "saud", "mohammed"]);
@@ -23,11 +23,13 @@ export async function POST(request: Request) {
   if (privateMembers.length && !privateMembers.includes(member.id)) return NextResponse.json({ error: "لا تملك صلاحية الإرسال هنا." }, { status: 403 });
   if (conversationId === "group:girls" && !GIRLS.has(member.id)) return NextResponse.json({ error: "هذه المجموعة لأعضائها فقط." }, { status: 403 });
   if (conversationId === "group:boys" && !BOYS.has(member.id)) return NextResponse.json({ error: "هذه المجموعة لأعضائها فقط." }, { status: 403 });
-  if (!(file instanceof File) || !ALLOWED.has(file.type) || file.size > MAX_SIZE) return NextResponse.json({ error: "الملف غير مدعوم أو أكبر من 20 ميجابايت." }, { status: 400 });
+  if (!(file instanceof File) || !ALLOWED.has(file.type) || file.size > MAX_SIZE) return NextResponse.json({ error: "الملف غير مدعوم أو أكبر من 50 ميجابايت." }, { status: 400 });
   const { data: buckets } = await admin.storage.listBuckets();
   if (!buckets?.some((bucket) => bucket.id === BUCKET)) {
     const { error } = await admin.storage.createBucket(BUCKET, { public: false, fileSizeLimit: MAX_SIZE, allowedMimeTypes: [...ALLOWED] });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  } else {
+    await admin.storage.updateBucket(BUCKET, { public: false, fileSizeLimit: MAX_SIZE, allowedMimeTypes: [...ALLOWED] });
   }
   const extension = file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "bin";
   const path = `${member.id}/${crypto.randomUUID()}.${extension}`;
