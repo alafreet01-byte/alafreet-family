@@ -2,12 +2,10 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
-  Billboard,
   Float,
   OrbitControls,
   Sparkles,
   Stars,
-  Text,
 } from "@react-three/drei";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { AnimatePresence, motion } from "framer-motion";
@@ -216,36 +214,6 @@ function MemberOrb({
         </mesh>
       </Float>
 
-      <Billboard position={[0, -0.62, 0]}>
-        <group>
-          <mesh position={[0, 0, -0.03]}>
-            <planeGeometry args={[1.55, 0.55]} />
-            <meshBasicMaterial color="#02030a" transparent opacity={0.76} />
-          </mesh>
-
-          <Text
-            position={[0, 0.08, 0]}
-            fontSize={0.22}
-            color="#ffffff"
-            anchorX="center"
-            anchorY="middle"
-            outlineWidth={0.012}
-            outlineColor="#000000"
-          >
-            {member.name}
-          </Text>
-
-          <Text
-            position={[0, -0.15, 0]}
-            fontSize={0.11}
-            color={member.color}
-            anchorX="center"
-            anchorY="middle"
-          >
-            {member.role}
-          </Text>
-        </group>
-      </Billboard>
     </group>
   );
 }
@@ -473,11 +441,11 @@ export default function DashboardPage() {
                   color: selectedMember.color,
                 }}
               >
-                {selectedMember.name.slice(0, 1)}
+                ◉
               </div>
 
-              <h2 className="mt-4 text-2xl font-black">{selectedMember.name}</h2>
-              <p className="mt-1 text-sm text-white/40">{selectedMember.role}</p>
+              <h2 className="mt-4 text-2xl font-black">ملف عائلي خاص</h2>
+              <p className="mt-1 text-sm text-white/40">لا تظهر الأسماء في الواجهة المنشورة</p>
 
               <button
                 type="button"
