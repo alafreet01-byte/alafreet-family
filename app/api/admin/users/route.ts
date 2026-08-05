@@ -15,10 +15,13 @@ type CreateUserBody = {
 
 type UpdateUserBody = {
   memberId: string;
-  action: "reset_password" | "change_username" | "change_role" | "disable";
+  action: "reset_password" | "change_username" | "change_role" | "update_profile" | "disable";
   password?: string;
   username?: string;
   role?: string;
+  name?: string;
+  grade?: string;
+  schoolSystem?: string;
 };
 
 function normalizeUsername(value: string) {
@@ -232,6 +235,31 @@ export async function PATCH(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+  }
+
+  if (body.action === "update_profile") {
+    const username = normalizeUsername(body.username ?? "");
+    const name = body.name?.trim();
+    const allowedRoles = ["super_admin", "school_admin", "university_user", "student", "child"];
+
+    if (!name || !isValidUsername(username) || !body.role || !allowedRoles.includes(body.role)) {
+      return NextResponse.json({ error: "تأكد من الاسم واسم المستخدم والصلاحية." }, { status: 400 });
+    }
+
+    const { data: duplicate } = await admin.from("family_members").select("id").eq("username", username).neq("id", member.id).maybeSingle();
+    if (duplicate) return NextResponse.json({ error: "اسم المستخدم مستخدم في حساب آخر." }, { status: 409 });
+
+    const { error: authError } = await admin.auth.admin.updateUserById(member.auth_user_id, {
+      email: `${username}@alafreet.ae`, email_confirm: true,
+      user_metadata: { name_ar: name, username, role: body.role },
+    });
+    if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
+
+    const { error: dbError } = await admin.from("family_members").update({
+      name_ar: name, name_en: username, username, role: body.role,
+      grade: body.grade?.trim() || null, school_system: body.schoolSystem?.trim() || null,
+    }).eq("id", member.id);
+    if (dbError) return NextResponse.json({ error: dbError.message }, { status: 400 });
   }
 
   if (body.action === "change_username") {
