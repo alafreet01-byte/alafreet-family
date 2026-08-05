@@ -4,7 +4,55 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
-import { familyCards, familyPulse, quickActions } from "./data";
+import { familyCards, quickActions } from "./data";
+
+type CalendarEvent = {
+  id: string;
+  title: string;
+  memberName: string;
+  startsAt: string;
+  category: string;
+};
+
+type PrayerData = {
+  timings?: Record<string, string>;
+};
+
+const prayerNames: Record<string, string> = {
+  Fajr: "الفجر",
+  Dhuhr: "الظهر",
+  Asr: "العصر",
+  Maghrib: "المغرب",
+  Isha: "العشاء",
+};
+
+function prayerAt(base: Date, value: string, addDay = false) {
+  const match = value?.match(/(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const result = new Date(base);
+  result.setHours(Number(match[1]), Number(match[2]), 0, 0);
+  if (addDay) result.setDate(result.getDate() + 1);
+  return result;
+}
+
+function getNextPrayer(now: Date, prayer: PrayerData | null) {
+  const timings = prayer?.timings;
+  if (!timings) return null;
+  const order = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+  for (const key of order) {
+    const at = prayerAt(now, timings[key]);
+    if (at && at.getTime() > now.getTime()) return { key, at };
+  }
+  const fajr = prayerAt(now, timings.Fajr, true);
+  return fajr ? { key: "Fajr", at: fajr } : null;
+}
+
+function remainingPrayerText(now: Date, target: Date) {
+  const minutes = Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 60000));
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return hours > 0 ? `${hours} ساعة و${rest} دقيقة` : `${rest} دقيقة`;
+}
 
 function getGreeting(hour: number) {
   if (hour < 12) return "صباح الخير";
@@ -17,6 +65,8 @@ export default function HomeEnginePage() {
   const [now, setNow] = useState(new Date());
   const [viewer, setViewer] = useState<{ id: string; name_ar: string; role: string } | null>(null);
   const [homeWeather, setHomeWeather] = useState<any>(null);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [prayer, setPrayer] = useState<PrayerData | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60000);
@@ -33,6 +83,14 @@ export default function HomeEnginePage() {
       if (member) setViewer(member);
     })();
     void fetch("/api/weather/home", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((data) => setHomeWeather(data?.observation ?? null)).catch(() => null);
+    void fetch("/api/family/calendar", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => setCalendarEvents(data?.events ?? []))
+      .catch(() => setCalendarEvents([]));
+    void fetch("/api/noor", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => setPrayer(data?.prayer ?? null))
+      .catch(() => setPrayer(null));
 
     return () => window.clearInterval(timer);
   }, []);
@@ -72,6 +130,15 @@ export default function HomeEnginePage() {
       }).format(now),
     [now],
   );
+
+  const nextCalendarEvent = useMemo(
+    () => calendarEvents
+      .filter((event) => new Date(event.startsAt).getTime() >= now.getTime())
+      .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())[0] ?? null,
+    [calendarEvents, now],
+  );
+
+  const nextPrayer = useMemo(() => getNextPrayer(now, prayer), [now, prayer]);
 
   return (
     <main dir="rtl" className="min-h-screen overflow-x-hidden bg-[#02030a] text-white">
@@ -124,25 +191,58 @@ export default function HomeEnginePage() {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {familyPulse.map((item) => (
-                <div key={item.title} className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-300/10 text-xl text-amber-200">
-                      {item.icon}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <strong className="text-sm">{item.title}</strong>
-                        <span className="rounded-full bg-white/[0.05] px-2 py-1 text-[9px] text-white/35">
-                          {item.status}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-xs leading-6 text-white/40">{item.detail}</p>
-                    </div>
-                  </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => router.push("/v9/calendar")}
+                className="group rounded-[24px] border border-violet-200/15 bg-violet-300/[0.055] p-5 text-right transition hover:border-violet-200/30"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-300/10 text-2xl">📅</span>
+                  <span className="rounded-full bg-violet-300/10 px-3 py-1 text-[10px] font-bold text-violet-100">التقويم</span>
                 </div>
-              ))}
+                <p className="mt-4 text-xs font-bold text-violet-200/55">الموعد القادم</p>
+                {nextCalendarEvent ? (
+                  <>
+                    <h3 className="mt-2 text-xl font-black">{nextCalendarEvent.title}</h3>
+                    <p className="mt-2 text-xs leading-6 text-white/45">
+                      {nextCalendarEvent.memberName} • {new Intl.DateTimeFormat("ar-AE", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(nextCalendarEvent.startsAt))}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="mt-2 text-xl font-black">لا يوجد موعد قادم</h3>
+                    <p className="mt-2 text-xs text-white/40">اضغط لإضافة موعد أو تذكير للعائلة.</p>
+                  </>
+                )}
+                <span className="mt-4 block text-[11px] font-bold text-violet-100/55 group-hover:text-violet-100">فتح التقويم ←</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/v9/noor")}
+                className="group rounded-[24px] border border-emerald-200/15 bg-emerald-300/[0.055] p-5 text-right transition hover:border-emerald-200/30"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-300/10 text-2xl">🕌</span>
+                  <span className="rounded-full bg-emerald-300/10 px-3 py-1 text-[10px] font-bold text-emerald-100">مدينة العين</span>
+                </div>
+                <p className="mt-4 text-xs font-bold text-emerald-200/55">الصلاة التالية</p>
+                {nextPrayer ? (
+                  <>
+                    <div className="mt-2 flex items-end justify-between gap-3">
+                      <h3 className="text-2xl font-black">{prayerNames[nextPrayer.key]}</h3>
+                      <strong className="text-sm text-emerald-200">باقي {remainingPrayerText(now, nextPrayer.at)}</strong>
+                    </div>
+                    <p className="mt-3 rounded-2xl bg-black/20 p-3 text-xs leading-6 text-emerald-50/65">
+                      اللهم أعنّي على ذكرك وشكرك وحسن عبادتك.
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-3 text-sm text-white/40">جاري تحميل مواقيت الصلاة...</p>
+                )}
+                <span className="mt-4 block text-[11px] font-bold text-emerald-100/55 group-hover:text-emerald-100">فتح القرآن والأذكار ←</span>
+              </button>
             </div>
           </motion.article>
 
