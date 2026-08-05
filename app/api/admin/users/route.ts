@@ -247,9 +247,10 @@ export async function PATCH(request: Request) {
       );
     }
 
+    const { data: currentAuth } = await admin.auth.admin.getUserById(member.auth_user_id);
     const { error } = await admin.auth.admin.updateUserById(
       member.auth_user_id,
-      { password: body.password },
+      { password: body.password, user_metadata: { ...(currentAuth.user?.user_metadata ?? {}), must_change_password: true } },
     );
 
     if (error) {

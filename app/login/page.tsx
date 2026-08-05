@@ -112,6 +112,12 @@ function LoginPageContent() {
         throw new Error("تم قبول البيانات لكن لم يتم إنشاء جلسة دخول.");
       }
 
+      if (data.user.user_metadata?.must_change_password === true) {
+        router.replace("/v9/change-password");
+        router.refresh();
+        return;
+      }
+
       await fetch("/api/account/session", { method: "POST" }).catch(() => null);
 
       if (rememberMe) {
