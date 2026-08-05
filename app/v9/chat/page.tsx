@@ -47,6 +47,7 @@ export default function FamilyChatPage() {
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [viewStatus, setViewStatus] = useState<Status | null>(null);
   const [viewerName, setViewerName] = useState("");
+  const [viewerId, setViewerId] = useState("");
   const [text, setText] = useState("");
   const [notice, setNotice] = useState("");
   const [sending, setSending] = useState(false);
@@ -91,6 +92,7 @@ export default function FamilyChatPage() {
         setStatuses(data.statuses ?? []);
         setPresence(data.presence ?? []);
         setViewerName(data.viewer?.name_ar ?? "");
+        setViewerId(data.viewer?.id ?? "");
         if (
           (data.conversations ?? []).find(
             (item: Conversation) => item.id === selected,
@@ -323,11 +325,31 @@ export default function FamilyChatPage() {
   }
 
   const active = conversations.find((item) => item.id === selected);
+  const girlsTheme = ["reem", "aisha", "fatima"].includes(viewerId);
+  const boysTheme = ["ahmed", "saud", "mohammed", "khalid"].includes(viewerId);
+  const chatBackground = girlsTheme
+    ? "bg-[#170d1b]"
+    : boysTheme
+      ? "bg-[#071520]"
+      : "bg-[#07100d]";
+  const sideBackground = girlsTheme
+    ? "bg-[#241329]"
+    : boysTheme
+      ? "bg-[#0d2431]"
+      : "bg-[#101b17]";
+  const accentBackground = girlsTheme
+    ? "bg-pink-500"
+    : boysTheme
+      ? "bg-sky-500"
+      : "bg-emerald-500";
   return (
-    <main dir="rtl" className="min-h-screen bg-[#07100d] p-0 text-white sm:p-5">
+    <main
+      dir="rtl"
+      className={`min-h-screen p-0 text-white sm:p-5 ${chatBackground}`}
+    >
       <div className="mx-auto flex h-[100dvh] max-w-7xl overflow-hidden border-white/10 bg-[#0b1411] sm:h-[calc(100dvh-40px)] sm:rounded-[28px] sm:border">
         <aside
-          className={`${mobileChat ? "hidden" : "flex"} w-full flex-col border-l border-white/10 bg-[#101b17] md:flex md:w-[360px]`}
+          className={`${mobileChat ? "hidden" : "flex"} w-full flex-col border-l border-white/10 ${sideBackground} md:flex md:w-[360px]`}
         >
           <header className="flex items-center justify-between bg-[#17241f] p-4">
             <div>
@@ -369,7 +391,7 @@ export default function FamilyChatPage() {
                   setSelected(item.id);
                   setMobileChat(true);
                 }}
-                className={`flex w-full items-center gap-3 border-b border-white/[.06] p-4 text-right transition ${selected === item.id ? "bg-emerald-400/10" : "hover:bg-white/[.04]"}`}
+                className={`flex w-full items-center gap-3 border-b border-white/[.06] p-4 text-right transition ${selected === item.id ? (girlsTheme ? "bg-pink-400/15" : boysTheme ? "bg-sky-400/15" : "bg-emerald-400/10") : "hover:bg-white/[.04]"}`}
               >
                 <span className="grid h-12 w-12 place-items-center rounded-full bg-emerald-300/10 text-2xl">
                   {item.icon}
@@ -381,7 +403,9 @@ export default function FamilyChatPage() {
                   </small>
                 </span>
                 {Boolean(item.unread) && (
-                  <b className="grid h-7 min-w-7 place-items-center rounded-full bg-emerald-500 px-2 text-xs">
+                  <b
+                    className={`grid h-7 min-w-7 place-items-center rounded-full px-2 text-xs ${accentBackground}`}
+                  >
                     {item.unread! > 99 ? "99+" : item.unread}
                   </b>
                 )}
@@ -390,7 +414,7 @@ export default function FamilyChatPage() {
           </nav>
         </aside>
         <section
-          className={`${mobileChat ? "flex" : "hidden"} min-w-0 flex-1 flex-col bg-[#07100d] md:flex`}
+          className={`${mobileChat ? "flex" : "hidden"} min-w-0 flex-1 flex-col ${chatBackground} md:flex`}
         >
           <header className="flex items-center gap-3 border-b border-white/10 bg-[#17241f] p-4">
             <button
