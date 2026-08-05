@@ -36,16 +36,22 @@ export async function GET() {
 
   const now = Date.now();
   const canManage = isParent(auth.member.role);
-  const capsules = (events ?? [])
+  const visibleEvents = (events ?? [])
     .filter((event) =>
       canManage ||
       event.actor_id === auth.member.id ||
       event.metadata?.recipientId === "all" ||
       event.metadata?.recipientId === auth.member.id,
-    )
-    .map((event) => {
+    );
+  const capsules = await Promise.all(visibleEvents.map(async (event) => {
       const unlocked = new Date(event.metadata?.unlockAt ?? 0).getTime() <= now;
       const mayRead = unlocked || event.actor_id === auth.member.id || canManage;
+      const mediaPath = String(event.metadata?.mediaPath ?? "");
+      let mediaUrl = "";
+      if (mayRead && mediaPath) {
+        const { data: signed } = await auth.admin.storage.from("family-time-capsules").createSignedUrl(mediaPath, 3600);
+        mediaUrl = signed?.signedUrl ?? "";
+      }
       return {
         id: event.id,
         title: event.title,
@@ -55,13 +61,15 @@ export async function GET() {
         recipientId: event.metadata?.recipientId ?? "all",
         recipientName: event.metadata?.recipientName ?? "العائلة",
         capsuleType: event.metadata?.capsuleType ?? "message",
+        mediaUrl,
+        mediaName: event.metadata?.mediaName ?? "",
         occasion: event.metadata?.occasion ?? "رسالة للمستقبل",
         unlockAt: event.metadata?.unlockAt,
         unlocked,
         canDelete: canManage || event.actor_id === auth.member.id,
         createdAt: event.created_at,
       };
-    });
+    }));
 
   return NextResponse.json({ viewer: auth.member, members: members ?? [], capsules });
 }
@@ -94,7 +102,7 @@ export async function POST(request: Request) {
     recipientName = recipient.name_ar;
   }
 
-  const { error } = await auth.admin.from("core_events").insert({
+  const { data: created, error } = await auth.admin.from("core_events").insert({
     event_type: "family.time_capsule",
     title,
     details: message,
@@ -107,9 +115,9 @@ export async function POST(request: Request) {
       capsuleType,
       occasion: String(body.occasion ?? "رسالة للمستقبل").trim(),
     },
-  });
+  }).select("id").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, id: created.id });
 }
 
 export async function DELETE(request: Request) {

@@ -11,6 +11,8 @@ type Capsule = {
   senderName: string;
   recipientName: string;
   capsuleType: string;
+  mediaUrl: string;
+  mediaName: string;
   occasion: string;
   unlockAt: string;
   unlocked: boolean;
@@ -31,6 +33,7 @@ export default function TimeCapsulePage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [form, setForm] = useState({
     title: "",
     recipientId: "all",
@@ -67,7 +70,16 @@ export default function TimeCapsulePage() {
     const data = await response.json();
     setBusy(false);
     if (!response.ok) return setNotice(data.error ?? "تعذر حفظ الكبسولة.");
+    if (file && data.id) {
+      const upload = new FormData();
+      upload.append("capsuleId", data.id);
+      upload.append("file", file);
+      const mediaResponse = await fetch("/api/family/time-capsules/media", { method: "POST", body: upload });
+      const mediaData = await mediaResponse.json();
+      if (!mediaResponse.ok) { setNotice(`حُفظت الرسالة، لكن تعذر رفع الملف: ${mediaData.error ?? "خطأ غير معروف"}`); await load(); return; }
+    }
     setForm({ ...form, title: "", message: "", unlockAt: "" });
+    setFile(null);
     setNotice("تم حفظ الكبسولة وإغلاقها بنجاح.");
     await load();
   }
@@ -118,6 +130,7 @@ export default function TimeCapsulePage() {
             <label className="mt-4 block text-xs text-white/45">تاريخ ووقت الفتح</label>
             <input required type="datetime-local" value={form.unlockAt} onChange={(e) => setForm({ ...form, unlockAt: e.target.value })} className="mt-2 w-full rounded-2xl bg-[#10131c] p-4" />
             <textarea required rows={6} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="اكتب رسالتك للمستقبل..." className="mt-3 w-full rounded-2xl bg-[#10131c] p-4" />
+            {form.capsuleType !== "message" && <label className="mt-3 block rounded-2xl border border-dashed border-amber-200/20 bg-black/20 p-4 text-sm text-white/55">اختر ملف {form.capsuleType === "photo" ? "صورة" : form.capsuleType === "video" ? "فيديو" : "صوت"}<input type="file" required accept={form.capsuleType === "photo" ? "image/*" : form.capsuleType === "video" ? "video/mp4,video/webm" : "audio/*"} onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="mt-3 block w-full text-xs" /></label>}
             <button disabled={busy} className="mt-4 w-full rounded-2xl bg-gradient-to-l from-amber-600 via-amber-300 to-amber-600 p-4 font-black text-black disabled:opacity-50">{busy ? "جاري الحفظ..." : "حفظ وإغلاق الكبسولة"}</button>
           </form>
 
@@ -132,6 +145,9 @@ export default function TimeCapsulePage() {
                   </div>
                   <p className="mt-3 text-xs text-amber-100/65">موعد الفتح: {new Intl.DateTimeFormat("ar-AE", { dateStyle: "long", timeStyle: "short" }).format(new Date(capsule.unlockAt))}</p>
                   {capsule.unlocked ? <p className="mt-4 rounded-2xl bg-black/20 p-4 leading-8 text-white/75">{capsule.message}</p> : <p className="mt-4 text-sm text-white/35">الرسالة محفوظة بأمان ولن تظهر للمستلم قبل الموعد.</p>}
+                  {capsule.unlocked && capsule.mediaUrl && capsule.capsuleType === "photo" && <img src={capsule.mediaUrl} alt={capsule.mediaName || capsule.title} className="mt-4 max-h-80 w-full rounded-2xl object-contain" />}
+                  {capsule.unlocked && capsule.mediaUrl && capsule.capsuleType === "video" && <video src={capsule.mediaUrl} controls className="mt-4 max-h-96 w-full rounded-2xl" />}
+                  {capsule.unlocked && capsule.mediaUrl && capsule.capsuleType === "audio" && <audio src={capsule.mediaUrl} controls className="mt-4 w-full" />}
                   {capsule.canDelete && <button onClick={() => void remove(capsule.id)} className="mt-4 text-xs text-rose-200">حذف الكبسولة</button>}
                 </article>
               ))}
