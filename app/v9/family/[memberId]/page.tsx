@@ -135,13 +135,16 @@ export default function MemberProfilePage() {
   const isAisha = member.id === "aisha";
   const isReem = member.id === "reem";
   const isAhmed = member.id === "ahmed";
+  const isAmal = member.id === "amal";
   const illustratedBackground = isAisha
     ? "/v9/backgrounds/aisha-garden-v1.png"
     : isReem
       ? "/v9/backgrounds/reem-art-studio-v1.png"
       : isAhmed
         ? "/v9/backgrounds/ahmed-warrior-valley-v1.png"
-        : "";
+        : isAmal
+          ? "/v9/backgrounds/amal-20th-anniversary-v1.png"
+          : "";
 
   return (
     <main
@@ -380,6 +383,128 @@ export default function MemberProfilePage() {
             </div>
           </div>
         </section>
+
+        {isAmal && (
+          <section
+            style={{
+              marginTop: 26,
+              overflow: "hidden",
+              borderRadius: 34,
+              border: "1px solid rgba(255,196,151,.24)",
+              background:
+                "linear-gradient(145deg,rgba(61,24,31,.94),rgba(20,9,17,.96))",
+              boxShadow: "0 30px 100px rgba(229,153,120,.1)",
+            }}
+          >
+            <div
+              style={{ padding: "clamp(26px,5vw,58px)", textAlign: "center" }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  color: "#f3c7a8",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  letterSpacing: ".24em",
+                }}
+              >
+                عِشْرُونَ عَامًا مِنَ الْمَوَدَّةِ وَالرَّحْمَةِ
+              </p>
+              <div
+                style={{
+                  margin: "18px auto 0",
+                  width: 92,
+                  height: 92,
+                  display: "grid",
+                  placeItems: "center",
+                  borderRadius: "50%",
+                  border: "1px solid rgba(255,215,170,.35)",
+                  background: "rgba(255,214,168,.08)",
+                  color: "#ffe0b7",
+                  fontSize: 44,
+                  fontWeight: 900,
+                }}
+              >
+                20
+              </div>
+              <h2
+                style={{
+                  margin: "20px 0 0",
+                  fontSize: "clamp(30px,5vw,58px)",
+                  color: "#fff4e9",
+                }}
+              >
+                إلى أمل… شكرًا من القلب
+              </h2>
+              <p
+                style={{
+                  margin: "20px auto 0",
+                  maxWidth: 850,
+                  color: "rgba(255,244,233,.72)",
+                  fontSize: "clamp(16px,2vw,20px)",
+                  lineHeight: 2.1,
+                }}
+              >
+                عشرون عامًا مضت، وفي كل عام كنتِ أجمل ما فيه. شكرًا لكل حبٍ
+                وحنان، لكل صبرٍ وعطاء، ولكل لحظة صنعتِ فيها من البيت وطنًا
+                دافئًا ومن الأيام ذكريات لا تُنسى. امتناني لكِ أكبر من الكلمات،
+                وأسأل الله أن يديم بيننا المودة والرحمة، وأن تكون أعوامنا
+                القادمة أجمل وأهدأ وأسعد. هذه الهدايا العشرون ليست إلا رموزًا
+                صغيرة أمام كل ما منحتِنا إياه على مر السنين.
+              </p>
+              <div
+                style={{
+                  marginTop: 32,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit,minmax(105px,1fr))",
+                  gap: 12,
+                }}
+              >
+                {Array.from({ length: 20 }, (_, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      minHeight: 108,
+                      display: "grid",
+                      placeItems: "center",
+                      borderRadius: 22,
+                      border: "1px solid rgba(255,218,183,.16)",
+                      background:
+                        "linear-gradient(145deg,rgba(255,226,197,.11),rgba(255,255,255,.025))",
+                      color: "#ffe2c2",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 30 }}>🎁</div>
+                      <strong style={{ display: "block", marginTop: 7 }}>
+                        الهدية {index + 1}
+                      </strong>
+                      <small
+                        style={{
+                          display: "block",
+                          marginTop: 4,
+                          color: "rgba(255,235,215,.45)",
+                        }}
+                      >
+                        لعامٍ جميل معكِ
+                      </small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p
+                style={{
+                  margin: "34px 0 0",
+                  color: "#f7cda9",
+                  fontSize: 18,
+                  fontWeight: 800,
+                }}
+              >
+                كل عام وأنتِ أجمل هدايا العمر 🤍
+              </p>
+            </div>
+          </section>
+        )}
 
         <section
           style={{
