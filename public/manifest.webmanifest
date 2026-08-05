@@ -2,7 +2,8 @@
   "name": "Alafreet Family",
   "short_name": "Alafreet",
   "description": "النظام العائلي الذكي لعائلة خليفة",
-  "start_url": "/dashboard",
+  "id": "/v9/home",
+  "start_url": "/v9/home",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -13,5 +14,10 @@
   "icons": [
     {"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
     {"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"البيت الرقمي","short_name":"البيت","url":"/v9/home","icons":[{"src":"/icons/icon-192.png","sizes":"192x192"}]},
+    {"name":"تقويم العائلة","short_name":"التقويم","url":"/v9/calendar","icons":[{"src":"/icons/icon-192.png","sizes":"192x192"}]},
+    {"name":"مركز المدرسة","short_name":"المدرسة","url":"/v9/school","icons":[{"src":"/icons/icon-192.png","sizes":"192x192"}]}
   ]
 }

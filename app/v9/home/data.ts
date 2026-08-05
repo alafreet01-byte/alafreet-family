@@ -1,0 +1,192 @@
+export type FamilyCard = {
+  id: string;
+  name: string;
+  subtitle: string;
+  route: string;
+  icon: string;
+  accent: string;
+  badge?: string;
+};
+
+export const familyCards: FamilyCard[] = [
+  {id:"install",name:"تثبيت ALAFREET",subtitle:"إضافة النظام إلى الهاتف أو الكمبيوتر كتطبيق مستقل",route:"/v9/install",icon:"▣",accent:"#fbbf24",badge:"App"},
+  {
+    id: "backup",
+    name: "خزنة النسخ الاحتياطي",
+    subtitle: "تحميل نسخة آمنة من بيانات العائلة والمواعيد والسجلات — للأب فقط",
+    route: "/v9/backup",
+    icon: "⬇",
+    accent: "#67e8f9",
+    badge: "Super Admin",
+  },
+  {
+    id: "father",
+    name: "Khalifa Command Center",
+    subtitle: "العمل، العائلة، القرارات، التذكيرات والمتابعة",
+    route: "/v9/father",
+    icon: "⌘",
+    accent: "#f2bf55",
+    badge: "Super Admin",
+  },
+  {
+    id: "amal",
+    name: "Amal Life Center",
+    subtitle: "المدرسة، الأدوية، الأفكار، المطبخ والمساعد الذكي",
+    route: "/v9/amal",
+    icon: "✿",
+    accent: "#f2a8d3",
+    badge: "School Admin",
+  },
+  {
+    id: "khalid",
+    name: "Engineering Lab",
+    subtitle: "جامعة الإمارات، هندسة الحاسوب، المشاريع والواجبات",
+    route: "/v9/khalid",
+    icon: "⚙",
+    accent: "#75c9ff",
+    badge: "UAEU",
+  },
+  {
+    id: "school",
+    name: "School Center",
+    subtitle: "Toddle، الواجبات، الاختبارات، الإعلانات والتقارير",
+    route: "/v9/school",
+    icon: "▣",
+    accent: "#9be6b5",
+    badge: "Toddle",
+  },
+  {
+    id: "balance",
+    name: "Family Balance",
+    subtitle: "ميزان العائلة، مهمات الكتابة والتأمل، وفرصة إصلاح الموقف",
+    route: "/v9/balance",
+    icon: "⚖",
+    accent: "#f3c969",
+    badge: "Family",
+  },
+  {
+    id: "noor",
+    name: "نور العائلة",
+    subtitle: "القرآن الكريم كاملًا، أذكار الوقت، مواقيت العين وتنبيه سورة الكهف",
+    route: "/v9/noor",
+    icon: "☾",
+    accent: "#86efac",
+    badge: "Quran & Adhkar",
+  },
+  {
+    id: "rewards",
+    name: "نجوم العائلة",
+    subtitle: "نقاط التشجيع، متجر المكافآت وطلبات الاستبدال",
+    route: "/v9/rewards",
+    icon: "★",
+    accent: "#facc15",
+    badge: "Rewards",
+  },
+  {
+    id: "calendar",
+    name: "تقويم العائلة",
+    subtitle: "المواعيد والتنبيهات والمدرسة والصحة لجميع أفراد العائلة",
+    route: "/v9/calendar",
+    icon: "◷",
+    accent: "#c4b5fd",
+    badge: "Calendar",
+  },
+  {
+    id: "health",
+    name: "صحة العائلة",
+    subtitle: "المستشفيات والأدوية وإعادة الصرف والتحاليل والتأمين",
+    route: "/v9/health",
+    icon: "♥",
+    accent: "#fda4af",
+    badge: "Health",
+  },
+  {
+    id: "documents",
+    name: "خزنة الوثائق",
+    subtitle: "الهويات والجوازات والتأمين والرخص وتنبيهات الانتهاء",
+    route: "/v9/documents",
+    icon: "▤",
+    accent: "#67e8f9",
+    badge: "Private",
+  },
+  {
+    id: "vehicles",
+    name: "مركز السيارات",
+    subtitle: "الملكية والتأمين والصيانة والزيت والإطارات والعداد",
+    route: "/v9/vehicles",
+    icon: "◆",
+    accent: "#93c5fd",
+    badge: "Garage",
+  },
+  {
+    id: "finance",
+    name: "ميزانية العائلة",
+    subtitle: "المصروفات والدخل والفواتير والاشتراكات والملخص الشهري",
+    route: "/v9/finance",
+    icon: "◈",
+    accent: "#6ee7b7",
+    badge: "Parents",
+  },
+  {
+    id: "shopping",
+    name: "مشتريات البيت",
+    subtitle: "قائمة مشتركة للعائلة والكمية والأولوية وربط دكان الحارة",
+    route: "/v9/shopping",
+    icon: "▰",
+    accent: "#bef264",
+    badge: "Shopping",
+  },
+  {
+    id: "family",
+    name: "Family World",
+    subtitle: "شجرة العائلة، الملفات، الذكريات والإنجازات",
+    route: "/v9/family",
+    icon: "✦",
+    accent: "#d8b36b",
+  },
+  {
+    id: "story",
+    name: "Our Story",
+    subtitle: "غرفة خاصة لخليفة وأمل: الذكريات، الرسائل والمفاجآت",
+    route: "/v9/our-story",
+    icon: "♥",
+    accent: "#ff8ea8",
+    badge: "Private",
+  },
+];
+
+export const familyPulse = [
+  {
+    title: "أمل",
+    detail: "لديها تذكير دواء الساعة 8:00 مساءً",
+    icon: "✿",
+    status: "مهم",
+  },
+  {
+    title: "خالد",
+    detail: "مهمة جامعية قادمة في هندسة الحاسوب",
+    icon: "⚙",
+    status: "جامعة",
+  },
+  {
+    title: "ريم",
+    detail: "واجبان في Toddle لم يكتملَا بعد",
+    icon: "▣",
+    status: "مدرسة",
+  },
+  {
+    title: "عائشة",
+    detail: "لعبة الذكاء اليومية متاحة",
+    icon: "◆",
+    status: "نشاط",
+  },
+];
+
+export const quickActions = [
+  { title: "إضافة تذكير", icon: "＋" },
+  { title: "إضافة واجب", icon: "✓" },
+  { title: "إضافة موعد", icon: "◷" },
+  { title: "حفظ ذكرى", icon: "◇" },
+  { title: "رسالة لأمل", icon: "♥" },
+  { title: "مهمة عائلية", icon: "⌂" },
+];

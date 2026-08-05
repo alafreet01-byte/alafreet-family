@@ -1,0 +1,296 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/browser";
+import { familyCards, familyPulse, quickActions } from "./data";
+
+function getGreeting(hour: number) {
+  if (hour < 12) return "صباح الخير";
+  if (hour < 18) return "مساء الخير";
+  return "مساء النور";
+}
+
+export default function HomeEnginePage() {
+  const router = useRouter();
+  const [now, setNow] = useState(new Date());
+  const [viewer, setViewer] = useState<{ id: string; name_ar: string; role: string } | null>(null);
+  const [homeWeather, setHomeWeather] = useState<any>(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60000);
+    const supabase = createClient();
+
+    void (async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) return;
+      const { data: member } = await supabase
+        .from("family_members")
+        .select("id, name_ar, role")
+        .eq("auth_user_id", authData.user.id)
+        .maybeSingle();
+      if (member) setViewer(member);
+    })();
+    void fetch("/api/weather/home", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((data) => setHomeWeather(data?.observation ?? null)).catch(() => null);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const visibleCards = useMemo(() => {
+    if (!viewer || viewer.role === "super_admin") return familyCards;
+
+    const allowed =
+      viewer.role === "school_admin"
+        ? new Set(["install", "amal", "khalid", "school", "balance", "noor", "rewards", "calendar", "health", "documents", "vehicles", "finance", "shopping", "family", "story"])
+        : viewer.role === "university_user"
+          ? new Set(["install", "khalid", "noor", "rewards", "calendar", "health", "documents", "vehicles", "shopping", "family"])
+          : viewer.role === "student" || viewer.role === "child"
+            ? new Set(["install", "school", "balance", "noor", "rewards", "calendar", "health", "documents", "shopping", "family"])
+            : new Set(["install", "noor", "rewards", "calendar", "health", "documents", "shopping", "family"]);
+
+    return familyCards.filter((card) => allowed.has(card.id));
+  }, [viewer]);
+
+  const greeting = useMemo(() => getGreeting(now.getHours()), [now]);
+
+  const formattedTime = useMemo(
+    () =>
+      new Intl.DateTimeFormat("ar-AE", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(now),
+    [now],
+  );
+
+  const formattedDate = useMemo(
+    () =>
+      new Intl.DateTimeFormat("ar-AE", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      }).format(now),
+    [now],
+  );
+
+  return (
+    <main dir="rtl" className="min-h-screen overflow-x-hidden bg-[#02030a] text-white">
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_80%_8%,rgba(222,164,55,0.18),transparent_25%),radial-gradient(circle_at_15%_20%,rgba(67,91,184,0.18),transparent_30%),linear-gradient(180deg,#02030a_0%,#060815_55%,#010106_100%)]" />
+
+      <header className="border-b border-white/10 bg-black/25 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
+          <div>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.34em] text-amber-200/45">
+              ALAFREET FAMILY OS
+            </p>
+            <h1 className="mt-2 text-2xl font-black sm:text-3xl">
+              {greeting} يا {viewer?.name_ar ?? "فرد العائلة"}
+            </h1>
+            <p className="mt-2 text-sm text-white/35">
+              {formattedDate} • {formattedTime}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push("/v9/family")}
+            className="rounded-2xl border border-amber-200/20 bg-amber-300/10 px-4 py-3 text-sm font-black text-amber-100 transition hover:bg-amber-300/15"
+          >
+            دخول عالم العائلة
+          </button>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+        <section className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+          <motion.article
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="overflow-hidden rounded-[32px] border border-amber-200/15 bg-white/[0.035] p-6 backdrop-blur-2xl"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold text-amber-200/55">FAMILY PULSE</p>
+                <h2 className="mt-2 text-3xl font-black">ملخص العائلة اليوم</h2>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-white/40">
+                  أهم ما يحتاج انتباهك خلال اليوم في شاشة واحدة.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-left">
+                <p className="text-[10px] text-white/30">الطقس</p>
+                <p className="mt-1 text-2xl font-black text-amber-200">34°</p>
+                <p className="mt-1 text-xs text-white/35">العين • غائم جزئيًا</p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {familyPulse.map((item) => (
+                <div key={item.title} className="rounded-2xl border border-white/8 bg-black/20 p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-300/10 text-xl text-amber-200">
+                      {item.icon}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <strong className="text-sm">{item.title}</strong>
+                        <span className="rounded-full bg-white/[0.05] px-2 py-1 text-[9px] text-white/35">
+                          {item.status}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs leading-6 text-white/40">{item.detail}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.article>
+
+          <motion.article
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="rounded-[32px] border border-white/10 bg-white/[0.035] p-6 backdrop-blur-2xl"
+          >
+            <p className="text-xs font-bold text-blue-200/55">WEATHER ALERT</p>
+            <h2 className="mt-2 text-2xl font-black">تنبيه الطقس</h2>
+            <div className="mt-5 rounded-2xl border border-blue-200/10 bg-blue-300/[0.055] p-4">
+              <p className="text-sm font-bold text-blue-100">لا يوجد تنبيه مطر حاليًا</p>
+              <p className="mt-2 text-xs leading-6 text-white/35">
+                سنعرض هنا المنطقة المتوقعة للمطر ووقت بدايته وانتهائه.
+              </p>
+            </div>
+
+            <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+              {[["جبل حفيت", "34°"], ["العين", "35°"], ["أبوظبي", "33°"]].map(([city, temp]) => (
+                <div key={city} className="rounded-2xl bg-black/20 p-3">
+                  <strong className="block text-sm">{temp}</strong>
+                  <span className="mt-1 block text-[10px] text-white/30">{city}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 overflow-hidden rounded-2xl border border-sky-200/15 bg-[#07111d]">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+                <div><p className="text-[10px] font-bold text-sky-200/55">NCM UAE RADAR</p><strong className="text-sm">رادار الأمطار الرسمي</strong></div>
+                <a href="https://www.ncm.gov.ae/maps-radars/uae-radars-network?lang=ar" target="_blank" rel="noreferrer" className="rounded-xl bg-sky-300/10 px-3 py-2 text-[11px] font-bold text-sky-100">فتح كاملًا ↗</a>
+              </div>
+              <a href="https://www.ncm.gov.ae/maps-radars/uae-radars-network?lang=ar" target="_blank" rel="noreferrer" aria-label="فتح خريطة رادار الإمارات" className="group relative flex h-44 items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_70%_50%,rgba(34,197,94,.32),transparent_13%),radial-gradient(circle_at_45%_35%,rgba(56,189,248,.28),transparent_19%),linear-gradient(145deg,#071522,#0b2633)]">
+                <span className="absolute left-[18%] top-[24%] h-20 w-20 rounded-full border border-sky-200/15" /><span className="absolute left-[13%] top-[17%] h-28 w-28 rounded-full border border-sky-200/10" />
+                <div className="text-center transition group-hover:scale-105"><span className="block text-5xl">🇦🇪</span><strong className="mt-2 block text-sm text-sky-50">خريطة رادار الإمارات</strong><span className="mt-1 block text-[10px] text-sky-100/45">اضغط لمشاهدة الحركة المباشرة</span></div>
+              </a>
+              <p className="px-4 py-2 text-[10px] text-white/30">المصدر: المركز الوطني للأرصاد الإماراتي</p>
+            </div>
+          </motion.article>
+        </section>
+
+        <section className="mt-6 rounded-[30px] border border-cyan-200/15 bg-cyan-300/[.035] p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold text-cyan-200/55">IALAIN19 • HOME RADAR</p><h2 className="mt-2 text-2xl font-black">رادار البيت</h2></div><span className={`rounded-full px-3 py-2 text-xs font-bold ${homeWeather?"bg-emerald-300/10 text-emerald-200":"bg-white/5 text-white/35"}`}>{homeWeather?"متصل ومباشر":"بانتظار القراءة"}</span></div>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            {[["الحرارة",homeWeather?.metric?.temp,"°C"],["الرطوبة",homeWeather?.humidity,"%"],["المحسوسة",homeWeather?.metric?.heatIndex,"°C"],["الرياح",homeWeather?.metric?.windSpeed,"كم/س"],["الهبات",homeWeather?.metric?.windGust,"كم/س"],["الضغط",homeWeather?.metric?.pressure,"hPa"],["المطر",homeWeather?.metric?.precipRate,"مم/س"]].map(([label,value,unit])=><div key={String(label)} className="rounded-2xl border border-white/8 bg-black/25 p-4 text-center"><span className="block text-[10px] text-white/35">{label}</span><strong className="mt-2 block text-2xl text-cyan-100">{value??"--"}</strong><span className="mt-1 block text-[10px] text-white/30">{unit}</span></div>)}
+          </div>
+        </section>
+
+        <section className="mt-6">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold text-amber-200/55">DIGITAL HOME</p>
+              <h2 className="mt-2 text-2xl font-black">البيت الرقمي</h2>
+            </div>
+            <span className="text-xs text-white/30">كل فرد يدخل إلى عالمه الخاص</span>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {visibleCards.map((card, index) => (
+              <motion.button
+                key={card.id}
+                type="button"
+                onClick={() => router.push(card.route)}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.04 * index }}
+                whileHover={{ y: -5 }}
+                className="group rounded-[28px] border border-white/10 bg-white/[0.035] p-5 text-right transition hover:border-white/20"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <span
+                    className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
+                    style={{
+                      color: card.accent,
+                      background: `${card.accent}16`,
+                      border: `1px solid ${card.accent}30`,
+                    }}
+                  >
+                    {card.icon}
+                  </span>
+
+                  {card.badge && (
+                    <span
+                      className="rounded-full px-2 py-1 text-[9px] font-bold"
+                      style={{
+                        color: card.accent,
+                        background: `${card.accent}12`,
+                      }}
+                    >
+                      {card.badge}
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="mt-5 text-lg font-black">{card.name}</h3>
+                <p className="mt-2 text-sm leading-7 text-white/35">{card.subtitle}</p>
+                <div className="mt-5 text-xs font-bold text-white/30 transition group-hover:text-white/55">
+                  فتح القسم ←
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 grid gap-4 lg:grid-cols-2">
+          <article className="rounded-[30px] border border-white/10 bg-white/[0.035] p-6">
+            <p className="text-xs font-bold text-pink-200/55">OUR STORY</p>
+            <h2 className="mt-2 text-2xl font-black">رسالة اليوم لأمل</h2>
+            <blockquote className="mt-5 rounded-2xl border border-pink-200/10 bg-pink-300/[0.045] p-5 text-lg leading-8 text-pink-50">
+              مهما كانت مشاغل الحياة، يبقى البيت أجمل مكان لأنكِ فيه.
+            </blockquote>
+            <button
+              type="button"
+              onClick={() => router.push("/v9/our-story")}
+              className="mt-4 rounded-2xl border border-pink-200/15 bg-pink-300/10 px-4 py-3 text-sm font-black text-pink-100"
+            >
+              دخول الغرفة الخاصة
+            </button>
+          </article>
+
+          <article className="rounded-[30px] border border-white/10 bg-white/[0.035] p-6">
+            <p className="text-xs font-bold text-emerald-200/55">QUICK ACTIONS</p>
+            <h2 className="mt-2 text-2xl font-black">إضافة سريعة</h2>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {quickActions.map((action) => (
+                <button
+                  key={action.title}
+                  type="button"
+                  className="rounded-2xl border border-white/8 bg-black/20 p-4 text-center transition hover:border-amber-200/20 hover:bg-amber-300/[0.045]"
+                >
+                  <span className="block text-xl text-amber-200">{action.icon}</span>
+                  <span className="mt-2 block text-xs font-bold">{action.title}</span>
+                </button>
+              ))}
+            </div>
+          </article>
+        </section>
+
+        <section className="mt-6 rounded-[30px] border border-white/10 bg-white/[0.035] p-6">
+          <p className="text-xs font-bold text-violet-200/55">FAMILY STORY</p>
+          <h2 className="mt-2 text-2xl font-black">قصة اليوم</h2>
+          <p className="mt-4 max-w-4xl text-sm leading-8 text-white/40">
+            اليوم كان لدى خالد متابعة جامعية، وتبقى لريم واجبان في المدرسة،
+            بينما أمل أضافت تذكيرًا جديدًا للعائلة. هذه القصة ستتكون تلقائيًا
+            كل ليلة من الأحداث والذكريات والإنجازات.
+          </p>
+        </section>
+      </div>
+    </main>
+  );
+}

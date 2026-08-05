@@ -1,0 +1,12 @@
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
+
+export default function InstallPage(){
+ const router=useRouter();const [prompt,setPrompt]=useState<InstallPrompt|null>(null);const [message,setMessage]=useState("");
+ useEffect(()=>{const handler=(event:Event)=>{event.preventDefault();setPrompt(event as InstallPrompt)};window.addEventListener("beforeinstallprompt",handler);return()=>window.removeEventListener("beforeinstallprompt",handler)},[]);
+ async function install(){if(!prompt){setMessage("من قائمة المتصفح اختر: تثبيت التطبيق أو إضافة إلى الشاشة الرئيسية.");return}await prompt.prompt();const result=await prompt.userChoice;setMessage(result.outcome==="accepted"?"تم تثبيت ALAFREET بنجاح 🎉":"يمكنك تثبيته في أي وقت.");if(result.outcome==="accepted")setPrompt(null)}
+ return <main dir="rtl" className="min-h-screen bg-[#03040a] px-4 py-8 text-white"><div className="mx-auto max-w-4xl"><header className="flex items-center justify-between gap-4 border-b border-white/10 pb-6"><div><p className="text-xs font-black tracking-[.3em] text-amber-200/55">INSTALL ALAFREET</p><h1 className="mt-2 text-4xl font-black">ثبّت ALAFREET كتطبيق 📱</h1></div><button onClick={()=>router.push('/v9/home')} className="rounded-2xl border border-white/10 px-5 py-3">البيت الرقمي</button></header><section className="mt-8 rounded-[32px] border border-amber-200/15 bg-amber-300/[.04] p-7 text-center"><img src="/icons/icon-192.png" alt="ALAFREET" className="mx-auto h-28 w-28 rounded-[28px]"/><h2 className="mt-5 text-2xl font-black">تطبيق العائلة على جهازك</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/45">يفتح بشاشة مستقلة ويظهر بأيقونة، مع وصول سريع للبيت الرقمي والتقويم والمدرسة.</p><button onClick={()=>void install()} className="mt-6 rounded-2xl bg-amber-300 px-8 py-4 font-black text-black">تثبيت التطبيق الآن</button>{message&&<p className="mt-4 rounded-2xl bg-white/5 p-4 text-sm text-amber-100">{message}</p>}</section><div className="mt-5 grid gap-4 sm:grid-cols-3">{[["Android","قائمة المتصفح ← تثبيت التطبيق"],["iPhone","مشاركة ← إضافة إلى الشاشة الرئيسية"],["Windows","علامة التثبيت بجانب عنوان الموقع"]].map(([name,help])=><div key={name} className="rounded-2xl border border-white/10 bg-white/[.03] p-5"><strong>{name}</strong><p className="mt-2 text-xs leading-6 text-white/40">{help}</p></div>)}</div></div></main>
+}
