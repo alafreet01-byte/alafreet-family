@@ -184,9 +184,20 @@ export default function HomeEnginePage() {
             <p className="text-[9px] font-semibold uppercase tracking-[0.34em] text-amber-200/45">
               ALAFREET FAMILY OS
             </p>
-            <h1 className="mt-2 text-2xl font-black sm:text-3xl">
-              {greeting} يا {viewer?.name_ar ?? "فرد العائلة"}
-            </h1>
+            <div className="mt-2 flex items-center gap-3">
+              <h1 className="text-2xl font-black sm:text-3xl">
+                {greeting} يا {viewer?.name_ar ?? "فرد العائلة"}
+              </h1>
+              <button
+                type="button"
+                onClick={() => router.push("/v9/chat")}
+                aria-label={chatUnread > 0 ? `${chatUnread} رسائل جديدة` : "فتح محادثات العائلة"}
+                className={`relative grid h-11 w-11 shrink-0 place-items-center rounded-full border text-xl transition ${chatUnread > 0 ? "animate-pulse border-emerald-300/40 bg-emerald-400/15 text-emerald-200" : "border-white/10 bg-white/5 text-white/35 hover:text-white"}`}
+              >
+                🔔
+                {chatUnread > 0 && <span className="absolute -left-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-red-500 px-1 text-[11px] font-black text-white shadow-lg shadow-red-500/30">{chatUnread > 99 ? "99+" : chatUnread}</span>}
+              </button>
+            </div>
             <p className="mt-2 text-sm text-white/35">
               {formattedDate} • {formattedTime}
             </p>
