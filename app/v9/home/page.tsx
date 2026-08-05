@@ -116,7 +116,7 @@ export default function HomeEnginePage() {
             ? new Set(["family-chat", "install", "school", "balance", "noor", "rewards", "calendar", "health", "documents", "shopping", "family"])
             : new Set(["family-chat", "install", "noor", "rewards", "calendar", "health", "documents", "shopping", "family"]);
 
-    return familyCards.filter((card) => allowed.has(card.id));
+    return familyCards.filter((card) => card.id === "notifications" || allowed.has(card.id));
   }, [viewer]);
 
   const greeting = useMemo(() => getGreeting(now.getHours()), [now]);

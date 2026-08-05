@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import PWARegister from "./components/PWARegister";
+import NotificationWatcher from "./components/NotificationWatcher";
 export const metadata: Metadata = {
   title:{default:"Alafreet Family",template:"%s | Alafreet Family"},
   description:"النظام العائلي الذكي لعائلة خليفة",
@@ -11,4 +12,4 @@ export const metadata: Metadata = {
   formatDetection:{telephone:false}
 };
 export const viewport: Viewport = {width:"device-width",initialScale:1,maximumScale:1,userScalable:false,viewportFit:"cover",themeColor:"#030712"};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="ar" dir="rtl"><body><PWARegister/>{children}</body></html>}
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="ar" dir="rtl"><body><PWARegister/><NotificationWatcher/>{children}</body></html>}

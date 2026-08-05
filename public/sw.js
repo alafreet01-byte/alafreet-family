@@ -1,4 +1,4 @@
-const CACHE = "alafreet-static-v10-3";
+const CACHE = "alafreet-static-v10-4";
 const STATIC_ASSETS = [
   "/manifest.webmanifest",
   "/icons/icon-192.png",
@@ -63,6 +63,21 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       });
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const route = event.notification.data?.route || "/v9/home";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const opened = windows.find((client) => "focus" in client);
+      if (opened) {
+        opened.navigate(route);
+        return opened.focus();
+      }
+      return clients.openWindow(route);
     }),
   );
 });

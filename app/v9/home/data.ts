@@ -10,6 +10,15 @@ export type FamilyCard = {
 
 export const familyCards: FamilyCard[] = [
   {
+    id: "notifications",
+    name: "مركز التنبيهات",
+    subtitle: "تنبيهات المواعيد والصحة والوثائق والمدرسة على الهاتف والكمبيوتر",
+    route: "/v9/notifications",
+    icon: "🔔",
+    accent: "#fbbf24",
+    badge: "Live Alerts",
+  },
+  {
     id: "family-chat",
     name: "الواتساب العائلي",
     subtitle: "محادثة العائلة الخاصة للرسائل والصور والفيديو والتسجيلات الصوتية",
