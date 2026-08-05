@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -72,7 +71,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await authenticate();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "مفتاح المساعد الذكي غير مفعّل." }, { status: 503 });
 
   const body = await request.json();
@@ -92,12 +91,15 @@ export async function POST(request: Request) {
     .order("created_at", { ascending: false })
     .limit(12);
   const history = [...(recent ?? [])].reverse().map((row) => ({
-    role: row.metadata?.messageRole === "assistant" ? "assistant" : "user",
-    content: [{ type: "input_text", text: String(row.details ?? "") }],
+    role: row.metadata?.messageRole === "assistant" ? "model" : "user",
+    parts: [{ text: String(row.details ?? "") }],
   }));
-  const currentContent: Array<Record<string, string>> = [];
-  if (question) currentContent.push({ type: "input_text", text: question });
-  if (imageData) currentContent.push({ type: "input_image", image_url: imageData, detail: "auto" });
+  const currentParts: Array<Record<string, unknown>> = [];
+  if (question) currentParts.push({ text: question });
+  if (imageData) {
+    const match = imageData.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (match) currentParts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+  }
 
   const grade = auth.member.grade ?? auth.member.class_name ?? auth.member.school_grade ?? "غير محدد";
   const instructions = `أنت المعلّم العائلي الآمن في ALAFREET FAMILY. الطالب: ${auth.member.name_ar}، الصف: ${grade}.
@@ -116,30 +118,38 @@ export async function POST(request: Request) {
     metadata: { ownerId: auth.member.id, ownerName: auth.member.name_ar, messageRole: "user", imageName, safetyFlag },
   });
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+    {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "gpt-5.6-sol",
-      instructions,
-      input: [...history, { role: "user", content: currentContent }],
-      reasoning: { effort: "medium" },
-      text: { verbosity: "medium" },
-      safety_identifier: createHash("sha256").update(String(auth.user.id)).digest("hex"),
-      store: false,
+      systemInstruction: { parts: [{ text: instructions }] },
+      contents: [...history, { role: "user", parts: currentParts }],
+      generationConfig: { temperature: 0.35, maxOutputTokens: 4096 },
     }),
   });
   const result = await response.json();
   if (!response.ok) {
-    return NextResponse.json({ error: result?.error?.message ?? "تعذر الحصول على الإجابة الآن." }, { status: response.status });
+    const providerMessage = String(result?.error?.message ?? "");
+    const error = /quota|rate|resource_exhausted/i.test(providerMessage)
+      ? "تم استهلاك الحد المجاني مؤقتًا. حاول مرة أخرى لاحقًا."
+      : /api key|permission|unauthenticated/i.test(providerMessage)
+        ? "مفتاح Gemini غير صالح أو غير مفعّل."
+        : "تعذر الحصول على الإجابة الآن. حاول مرة أخرى.";
+    return NextResponse.json({ error }, { status: response.status });
   }
-  const answer = String(result.output_text ?? result.output?.flatMap((item: any) => item.content ?? []).find((item: any) => item.type === "output_text")?.text ?? "لم أتمكن من كتابة الإجابة.");
+  const answer = String(
+    result.candidates?.[0]?.content?.parts
+      ?.map((part: { text?: string }) => part.text ?? "")
+      .join("") || "لم أتمكن من كتابة الإجابة.",
+  );
   const { data: saved, error } = await auth.admin.from("core_events").insert({
     event_type: "ai.tutor_message",
     title: "إجابة المساعد الدراسي",
     details: answer,
     actor_id: auth.member.id,
-    metadata: { ownerId: auth.member.id, ownerName: auth.member.name_ar, messageRole: "assistant", model: "gpt-5.6-sol", safetyFlag },
+    metadata: { ownerId: auth.member.id, ownerName: auth.member.name_ar, messageRole: "assistant", model: "gemini-3.6-flash", safetyFlag },
   }).select("id,created_at").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ message: { id: saved.id, role: "assistant", text: answer, safetyFlag, createdAt: saved.created_at } });
