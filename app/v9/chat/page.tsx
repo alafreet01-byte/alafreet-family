@@ -4,7 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import VideoCallPanel from "./VideoCallPanel";
 
-type Conversation = { id: string; name: string; icon: string; kind: string; memberId?: string };
+type Conversation = { id: string; name: string; icon: string; kind: string; memberId?: string; unread?: number };
 type Message = { id: string; text: string; senderId: string; senderName: string; createdAt: string; mediaUrl: string; mediaType: string; mediaName: string; mine: boolean };
 type Status = { id: string; senderId: string; senderName: string; caption: string; mediaUrl: string; mediaType: string; createdAt: string };
 
@@ -37,6 +37,10 @@ export default function FamilyChatPage() {
       setMessages(data.messages ?? []);
       setStatuses(data.statuses ?? []);
       setViewerName(data.viewer?.name_ar ?? "");
+      if ((data.conversations ?? []).find((item: Conversation) => item.id === selected)?.unread > 0) {
+        void fetch("/api/family/chat", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: selected }) });
+        setConversations((current) => current.map((item) => item.id === selected ? { ...item, unread: 0 } : item));
+      }
     } catch { if (!quiet) setNotice("تعذر الاتصال بالمحادثات."); }
   }, [selected]);
 
@@ -87,7 +91,7 @@ export default function FamilyChatPage() {
     <aside className={`${mobileChat ? "hidden" : "flex"} w-full flex-col border-l border-white/10 bg-[#101b17] md:flex md:w-[360px]`}>
       <header className="flex items-center justify-between bg-[#17241f] p-4"><div><p className="text-[10px] font-black tracking-[.25em] text-emerald-300/55">ALAFREET CHAT</p><h1 className="mt-1 text-xl font-black">محادثات العائلة</h1><p className="mt-1 text-xs text-white/40">مرحبًا {viewerName}</p></div><button onClick={() => router.push("/v9/home")} className="rounded-xl border border-white/10 px-3 py-2 text-xs">البيت</button></header>
       <div className="border-b border-white/10 p-3"><label className="mb-3 flex cursor-pointer items-center gap-3 rounded-xl bg-emerald-300/10 p-3 text-sm font-black text-emerald-100"><span className="grid h-9 w-9 place-items-center rounded-full border border-dashed border-emerald-200">＋</span>إضافة حالة<input type="file" accept="image/*,video/*" onChange={(event) => void uploadStatus(event.target.files?.[0])} className="hidden" /></label><div className="rounded-xl bg-[#202c27] px-4 py-3 text-xs text-white/35">🔍 القروبات والمحادثات الخاصة</div></div>
-      <nav className="flex-1 overflow-y-auto">{conversations.map((item) => <button key={item.id} onClick={() => { setSelected(item.id); setMobileChat(true); }} className={`flex w-full items-center gap-3 border-b border-white/[.06] p-4 text-right transition ${selected === item.id ? "bg-emerald-400/10" : "hover:bg-white/[.04]"}`}><span className="grid h-12 w-12 place-items-center rounded-full bg-emerald-300/10 text-2xl">{item.icon}</span><span><strong className="block">{item.name}</strong><small className="mt-1 block text-white/35">اضغط لفتح المحادثة</small></span></button>)}</nav>
+      <nav className="flex-1 overflow-y-auto">{conversations.map((item) => <button key={item.id} onClick={() => { setSelected(item.id); setMobileChat(true); }} className={`flex w-full items-center gap-3 border-b border-white/[.06] p-4 text-right transition ${selected === item.id ? "bg-emerald-400/10" : "hover:bg-white/[.04]"}`}><span className="grid h-12 w-12 place-items-center rounded-full bg-emerald-300/10 text-2xl">{item.icon}</span><span className="min-w-0 flex-1"><strong className="block">{item.name}</strong><small className="mt-1 block text-white/35">اضغط لفتح المحادثة</small></span>{Boolean(item.unread) && <b className="grid h-7 min-w-7 place-items-center rounded-full bg-emerald-500 px-2 text-xs">{item.unread! > 99 ? "99+" : item.unread}</b>}</button>)}</nav>
     </aside>
     <section className={`${mobileChat ? "flex" : "hidden"} min-w-0 flex-1 flex-col bg-[#07100d] md:flex`}>
       <header className="flex items-center gap-3 border-b border-white/10 bg-[#17241f] p-4"><button onClick={() => setMobileChat(false)} className="rounded-xl p-2 text-xl md:hidden">→</button><span className="grid h-11 w-11 place-items-center rounded-full bg-emerald-300/10 text-xl">{active?.icon ?? "💬"}</span><div><h2 className="font-black">{active?.name ?? "قروب العائلة"}</h2><p className="text-[11px] text-emerald-200/45">محادثة خاصة ومحمية للعائلة</p></div>{active?.kind === "private" && active.memberId && <VideoCallPanel conversationId={active.id} targetId={active.memberId} targetName={active.name} />}</header>

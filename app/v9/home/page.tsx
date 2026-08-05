@@ -76,6 +76,7 @@ export default function HomeEnginePage() {
   const [homeWeather, setHomeWeather] = useState<any>(null);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [prayer, setPrayer] = useState<PrayerData | null>(null);
+  const [chatUnread, setChatUnread] = useState(0);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60000);
@@ -100,8 +101,11 @@ export default function HomeEnginePage() {
       .then((r) => r.ok ? r.json() : null)
       .then((data) => setPrayer(data?.prayer ?? null))
       .catch(() => setPrayer(null));
+    const loadUnread = () => void fetch("/api/family/chat?summary=1", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((data) => setChatUnread(Number(data?.totalUnread ?? 0))).catch(() => null);
+    loadUnread();
+    const unreadTimer = window.setInterval(loadUnread, 15000);
 
-    return () => window.clearInterval(timer);
+    return () => { window.clearInterval(timer); window.clearInterval(unreadTimer); };
   }, []);
 
   const visibleCards = useMemo(() => {
@@ -381,7 +385,7 @@ export default function HomeEnginePage() {
                     {card.icon}
                   </span>
 
-                  {card.badge && (
+                  {(card.badge || (card.id === "family-chat" && chatUnread > 0)) && (
                     <span
                       className="rounded-full px-2 py-1 text-[9px] font-bold"
                       style={{
@@ -389,7 +393,7 @@ export default function HomeEnginePage() {
                         background: `${card.accent}12`,
                       }}
                     >
-                      {card.badge}
+                      {card.id === "family-chat" && chatUnread > 0 ? `${chatUnread > 99 ? "99+" : chatUnread} جديدة` : card.badge}
                     </span>
                   )}
                 </div>
