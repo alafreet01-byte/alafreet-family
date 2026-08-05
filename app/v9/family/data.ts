@@ -18,7 +18,7 @@ export const familyMembers: FamilyMember[] = [
   { id: "aisha", name: "عائشة", role: "ابنة", color: "#ffabc2", angle: 3.5, radius: 4.55, height: 0.35, subtitle: "فرحة العائلة" },
   { id: "saud", name: "سعود", role: "ابن", color: "#98e9c7", angle: 4.2, radius: 4.3, height: 0.75, subtitle: "روح مرحة" },
   { id: "fatima", name: "فاطمة", role: "ابنة", color: "#ffd4ab", angle: 4.9, radius: 4.5, height: -0.05, subtitle: "نور هادئ" },
-  { id: "mohammed", name: "محمد", role: "ابن", color: "#cadcff", angle: 5.6, radius: 4.2, height: 0.3, subtitle: "أصغر نجوم العالم" }
+  { id: "mohammed", name: "محمد", role: "ابن", color: "#cadcff", angle: 5.6, radius: 4.2, height: 0.3, subtitle: "أصغر نجوم العالم" },
 ];
 
 export function getFamilyMember(id: string) {
