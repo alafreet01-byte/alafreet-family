@@ -112,6 +112,8 @@ function LoginPageContent() {
         throw new Error("تم قبول البيانات لكن لم يتم إنشاء جلسة دخول.");
       }
 
+      await fetch("/api/account/session", { method: "POST" }).catch(() => null);
+
       if (rememberMe) {
         window.localStorage.setItem(
           "alafreet-remember-username",
