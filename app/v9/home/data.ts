@@ -10,6 +10,15 @@ export type FamilyCard = {
 
 export const familyCards: FamilyCard[] = [
   {
+    id: "assistant",
+    name: "المساعد الدراسي الذكي",
+    subtitle: "حل الواجبات وشرح جميع المواد واستقبال صور الأسئلة مع خصوصية كاملة لكل فرد",
+    route: "/v9/assistant",
+    icon: "🤖",
+    accent: "#a78bfa",
+    badge: "ALAFREET AI",
+  },
+  {
     id: "notifications",
     name: "مركز التنبيهات",
     subtitle: "تنبيهات المواعيد والصحة والوثائق والمدرسة على الهاتف والكمبيوتر",

@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
     "/rewards": "/v9/rewards",
     "/tasks": "/v9/school",
     "/memories": "/v9/time-capsule",
-    "/assistant": "/v9/noor",
+    "/assistant": "/v9/assistant",
     "/showcase": "/v9/home",
     "/chat": "/v9/chat",
   };

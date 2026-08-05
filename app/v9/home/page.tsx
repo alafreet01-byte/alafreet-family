@@ -255,7 +255,10 @@ export default function HomeEnginePage() {
               ]);
 
     return familyCards.filter(
-      (card) => card.id === "notifications" || allowed.has(card.id),
+      (card) =>
+        card.id === "notifications" ||
+        card.id === "assistant" ||
+        allowed.has(card.id),
     );
   }, [viewer]);
 
