@@ -31,7 +31,7 @@ const quickActionRoutes = [
   "/v9/school?create=assignment",
   "/v9/calendar?create=appointment",
   "/v9/time-capsule?create=memory",
-  "/maintenance",
+  "/v9/chat",
   "/v9/balance?create=task",
 ];
 

@@ -22,7 +22,7 @@ export const familyCards: FamilyCard[] = [
     id: "family-chat",
     name: "الواتساب العائلي",
     subtitle: "محادثة العائلة الخاصة للرسائل والصور والفيديو والتسجيلات الصوتية",
-    route: "/maintenance",
+    route: "/v9/chat",
     icon: "💬",
     accent: "#4ade80",
     badge: "Family Chat",

@@ -13,6 +13,7 @@ export async function middleware(request: NextRequest) {
     "/memories": "/v9/time-capsule",
     "/assistant": "/v9/noor",
     "/showcase": "/v9/home",
+    "/chat": "/v9/chat",
   };
   const destination = legacyRoutes[request.nextUrl.pathname];
   if (destination) return NextResponse.redirect(new URL(destination, request.url), 308);
@@ -20,5 +21,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/v9/:path*", "/dashboard", "/family", "/calendar", "/rewards", "/tasks", "/memories", "/assistant", "/showcase"],
+  matcher: ["/login", "/v9/:path*", "/dashboard", "/family", "/calendar", "/rewards", "/tasks", "/memories", "/assistant", "/showcase", "/chat"],
 };
