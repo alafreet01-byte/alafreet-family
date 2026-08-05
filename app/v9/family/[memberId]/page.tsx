@@ -132,6 +132,8 @@ export default function MemberProfilePage() {
     );
   }
 
+  const isAisha = member.id === "aisha";
+
   return (
     <main
       dir="rtl"
@@ -214,7 +216,9 @@ export default function MemberProfilePage() {
             overflow: "hidden",
             borderRadius: 34,
             border: `1px solid ${member.color}35`,
-            background: "rgba(5,7,16,0.76)",
+            background: isAisha
+              ? "linear-gradient(90deg, rgba(13,7,22,.08) 0%, rgba(13,7,22,.48) 48%, rgba(13,7,22,.92) 100%), url('/v9/backgrounds/aisha-garden-v1.png') center/cover no-repeat"
+              : "rgba(5,7,16,0.76)",
             boxShadow: `0 30px 100px ${member.color}0f`,
             backdropFilter: "blur(22px)",
           }}
@@ -224,10 +228,9 @@ export default function MemberProfilePage() {
               position: "absolute",
               inset: 0,
               pointerEvents: "none",
-              background: `
-                radial-gradient(circle at 85% 10%, ${member.color}1f, transparent 26%),
-                linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.018), transparent 70%)
-              `,
+              background: isAisha
+                ? "linear-gradient(180deg, rgba(255,255,255,.04), rgba(20,7,28,.15))"
+                : `radial-gradient(circle at 85% 10%, ${member.color}1f, transparent 26%), linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.018), transparent 70%)`,
             }}
           />
 
@@ -333,10 +336,9 @@ export default function MemberProfilePage() {
                   display: "grid",
                   placeItems: "center",
                   border: `1px solid ${member.color}55`,
-                  background: `
-                    radial-gradient(circle at 35% 28%, rgba(255,255,255,0.17), transparent 18%),
-                    radial-gradient(circle, ${member.color}24, ${member.color}08 65%, transparent 70%)
-                  `,
+                  background: isAisha
+                    ? "rgba(255,255,255,.68)"
+                    : `radial-gradient(circle at 35% 28%, rgba(255,255,255,0.17), transparent 18%), radial-gradient(circle, ${member.color}24, ${member.color}08 65%, transparent 70%)`,
                   boxShadow: `
                     0 0 0 18px ${member.color}09,
                     0 0 80px ${member.color}20,
