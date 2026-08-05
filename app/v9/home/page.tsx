@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import { familyCards, quickActions } from "./data";
 
@@ -81,9 +81,28 @@ export default function HomeEnginePage() {
     role: string;
   } | null>(null);
   const [homeWeather, setHomeWeather] = useState<any>(null);
+  const [weatherRefreshing, setWeatherRefreshing] = useState(false);
+  const [weatherUpdatedAt, setWeatherUpdatedAt] = useState<Date | null>(null);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [prayer, setPrayer] = useState<PrayerData | null>(null);
   const [chatUnread, setChatUnread] = useState(0);
+
+  const loadHomeWeather = useCallback(async () => {
+    setWeatherRefreshing(true);
+    try {
+      const response = await fetch(`/api/weather/home?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data?.observation) {
+        setHomeWeather(data.observation);
+        setWeatherUpdatedAt(new Date());
+      }
+    } finally {
+      setWeatherRefreshing(false);
+    }
+  }, []);
 
   const personalTheme = useMemo(() => {
     const id = viewer?.id ?? "";
@@ -147,10 +166,8 @@ export default function HomeEnginePage() {
         .maybeSingle();
       if (member) setViewer(member);
     })();
-    void fetch("/api/weather/home", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setHomeWeather(data?.observation ?? null))
-      .catch(() => null);
+    void loadHomeWeather();
+    const weatherTimer = window.setInterval(loadHomeWeather, 10 * 60 * 1000);
     void fetch("/api/family/calendar", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setCalendarEvents(data?.events ?? []))
@@ -170,8 +187,9 @@ export default function HomeEnginePage() {
     return () => {
       window.clearInterval(timer);
       window.clearInterval(unreadTimer);
+      window.clearInterval(weatherTimer);
     };
-  }, []);
+  }, [loadHomeWeather]);
 
   const visibleCards = useMemo(() => {
     if (!viewer || viewer.role === "super_admin") return familyCards;
@@ -614,11 +632,32 @@ export default function HomeEnginePage() {
               </p>
               <h2 className="mt-2 text-2xl font-black">رادار البيت</h2>
             </div>
-            <span
-              className={`rounded-full px-3 py-2 text-xs font-bold ${homeWeather ? "bg-emerald-300/10 text-emerald-200" : "bg-white/5 text-white/35"}`}
-            >
-              {homeWeather ? "متصل ومباشر" : "بانتظار القراءة"}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="text-left text-[10px] leading-5 text-white/35">
+                <span className="block">
+                  {weatherUpdatedAt
+                    ? `آخر تحديث: ${new Intl.DateTimeFormat("ar-AE", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }).format(weatherUpdatedAt)}`
+                    : "بانتظار أول تحديث"}
+                </span>
+                <span className="block">تحديث تلقائي كل 10 دقائق</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => void loadHomeWeather()}
+                disabled={weatherRefreshing}
+                className="rounded-full border border-cyan-200/20 bg-cyan-300/10 px-4 py-2 text-xs font-black text-cyan-100 transition hover:bg-cyan-300/20 disabled:cursor-wait disabled:opacity-60"
+              >
+                {weatherRefreshing ? "جاري التحديث..." : "تحديث الآن ↻"}
+              </button>
+              <span
+                className={`rounded-full px-3 py-2 text-xs font-bold ${homeWeather ? "bg-emerald-300/10 text-emerald-200" : "bg-white/5 text-white/35"}`}
+              >
+                {homeWeather ? "متصل ومباشر" : "بانتظار القراءة"}
+              </span>
+            </div>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
             {[
