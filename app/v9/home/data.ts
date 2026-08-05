@@ -9,6 +9,15 @@ export type FamilyCard = {
 };
 
 export const familyCards: FamilyCard[] = [
+  {
+    id: "family-chat",
+    name: "الواتساب العائلي",
+    subtitle: "محادثة العائلة الخاصة للرسائل والصور والفيديو والتسجيلات الصوتية",
+    route: "/chat",
+    icon: "💬",
+    accent: "#4ade80",
+    badge: "Family Chat",
+  },
   {id:"install",name:"تثبيت ALAFREET",subtitle:"إضافة النظام إلى الهاتف أو الكمبيوتر كتطبيق مستقل",route:"/v9/install",icon:"▣",accent:"#fbbf24",badge:"App"},
   {
     id: "backup",

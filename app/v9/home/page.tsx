@@ -42,12 +42,12 @@ export default function HomeEnginePage() {
 
     const allowed =
       viewer.role === "school_admin"
-        ? new Set(["install", "amal", "khalid", "school", "balance", "noor", "rewards", "calendar", "health", "documents", "vehicles", "finance", "shopping", "family", "story"])
+        ? new Set(["family-chat", "install", "amal", "khalid", "school", "balance", "noor", "rewards", "calendar", "health", "documents", "vehicles", "finance", "shopping", "family", "story"])
         : viewer.role === "university_user"
-          ? new Set(["install", "khalid", "noor", "rewards", "calendar", "health", "documents", "vehicles", "shopping", "family"])
+          ? new Set(["family-chat", "install", "khalid", "noor", "rewards", "calendar", "health", "documents", "vehicles", "shopping", "family"])
           : viewer.role === "student" || viewer.role === "child"
-            ? new Set(["install", "school", "balance", "noor", "rewards", "calendar", "health", "documents", "shopping", "family"])
-            : new Set(["install", "noor", "rewards", "calendar", "health", "documents", "shopping", "family"]);
+            ? new Set(["family-chat", "install", "school", "balance", "noor", "rewards", "calendar", "health", "documents", "shopping", "family"])
+            : new Set(["family-chat", "install", "noor", "rewards", "calendar", "health", "documents", "shopping", "family"]);
 
     return familyCards.filter((card) => allowed.has(card.id));
   }, [viewer]);
