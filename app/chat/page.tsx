@@ -200,11 +200,13 @@ export default function ChatPage() {
         .eq("auth_user_id", user.id)
         .maybeSingle();
 
+      const emailMemberKey = user.email?.split("@")[0] === "amal" ? "mother" : user.email?.split("@")[0];
       const memberKey = linkedMember?.id === "amal"
         ? "mother"
-        : linkedMember?.id || profile?.member_key || "khalifa";
+        : linkedMember?.id || (emailMemberKey && familyMembers.some((member) => member.id === emailMemberKey) ? emailMemberKey : null) || profile?.member_key || "khalifa";
+      const memberProfile = familyMembers.find((member) => member.id === memberKey);
       const displayName =
-        linkedMember?.name_ar || profile?.display_name || user.email?.split("@")[0] || "خليفة";
+        linkedMember?.name_ar || memberProfile?.privateName || memberProfile?.name || profile?.display_name || user.email?.split("@")[0] || "خليفة";
 
       setCurrentMemberKey(memberKey);
       setCurrentDisplayName(displayName);
