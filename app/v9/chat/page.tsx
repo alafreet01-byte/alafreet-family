@@ -19,6 +19,11 @@ export default function FamilyChatPage() {
   const bottom = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("conversation");
+    if (requested) { setSelected(requested); setMobileChat(true); }
+  }, []);
+
   const load = useCallback(async (quiet = false) => {
     try {
       const response = await fetch(`/api/family/chat?conversation=${encodeURIComponent(selected)}`, { cache: "no-store" });

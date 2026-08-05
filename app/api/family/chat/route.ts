@@ -36,6 +36,18 @@ export async function GET(request: Request) {
   const auth = await authenticate();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
   const url = new URL(request.url);
+  if (url.searchParams.get("summary") === "1") {
+    const { data: rows, error } = await auth.admin.from("core_events").select("id,details,actor_id,metadata,created_at").eq("event_type", "family.chat_message").order("created_at", { ascending: false }).limit(80);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    const recent = (rows ?? []).filter((row) => row.actor_id !== auth.member.id && mayAccess(auth.member.id, String(row.metadata?.conversationId ?? ""))).map((row) => ({
+      id: row.id,
+      text: row.details || (row.metadata?.mediaType?.startsWith("image/") ? "أرسل صورة" : row.metadata?.mediaType?.startsWith("video/") ? "أرسل فيديو" : "أرسل ملفًا"),
+      senderName: row.metadata?.senderName ?? "فرد من العائلة",
+      conversationId: row.metadata?.conversationId ?? "group:family",
+      createdAt: row.created_at,
+    }));
+    return NextResponse.json({ messages: recent });
+  }
   const selected = url.searchParams.get("conversation") || "group:family";
   if (!mayAccess(auth.member.id, selected)) return NextResponse.json({ error: "لا تملك صلاحية فتح هذه المحادثة." }, { status: 403 });
 
