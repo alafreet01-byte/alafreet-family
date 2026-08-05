@@ -39,7 +39,7 @@ const members: Member[] = [
 const worlds = [
   { label: "الأفراد", sub: "ملفات العائلة", icon: "◉", route: "/family" },
   { label: "الذكريات", sub: "الصور واللحظات", icon: "✦", route: "/memories" },
-  { label: "المحادثات", sub: "الدردشة الخاصة", icon: "◌", route: "/chat" },
+  { label: "المحادثات", sub: "قيد إعادة البناء", icon: "◌", route: "/maintenance" },
   { label: "المهام", sub: "تنظيم اليوم", icon: "✓", route: "/tasks" },
   { label: "المكافآت", sub: "النقاط والإنجازات", icon: "◆", route: "/rewards" },
   { label: "التقويم", sub: "المواعيد والأحداث", icon: "▦", route: "/calendar" },

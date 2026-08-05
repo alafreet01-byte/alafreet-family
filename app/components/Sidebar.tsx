@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 const items = [
-  ["/dashboard","🏠","الرئيسية"],["/chat","💬","المحادثة"],["/calendar","📅","التقويم"],
+  ["/dashboard","🏠","الرئيسية"],["/maintenance","💬","المحادثة"],["/calendar","📅","التقويم"],
   ["/memories","📸","الذكريات"],["/tasks","🎯","المهام"],["/rewards","🏆","المكافآت"],
   ["/family","👨‍👩‍👧‍👦","العائلة"],["/assistant","🤖","المساعد الذكي"],["/showcase","🌌","وضع العرض"]
 ] as const;
