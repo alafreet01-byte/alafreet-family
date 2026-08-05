@@ -112,6 +112,8 @@ export default function ChatPage() {
 
   const [recording, setRecording] = useState(false);
   const [videoCallOpen, setVideoCallOpen] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const knownMessageIdsRef = useRef<Set<string>>(new Set());
   const [recordingSeconds, setRecordingSeconds] = useState(0);
 
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -153,14 +155,22 @@ export default function ChatPage() {
   const filteredMessages = useMemo(() => {
     const query = searchText.trim().toLowerCase();
 
-    if (!query) return messages;
+    const visible = conversationType === "room" && conversationId === "status"
+      ? messages.filter((message) => Date.now() - new Date(message.created_at).getTime() < 24 * 60 * 60 * 1000)
+      : messages;
 
-    return messages.filter((message) =>
+    if (!query) return visible;
+
+    return visible.filter((message) =>
       [message.body, message.sender_name].some((value) =>
         value.toLowerCase().includes(query),
       ),
     );
-  }, [messages, searchText]);
+  }, [conversationId, conversationType, messages, searchText]);
+
+  useEffect(() => {
+    setNotificationsEnabled(typeof Notification !== "undefined" && Notification.permission === "granted");
+  }, []);
 
   useEffect(() => {
     async function initialise() {
@@ -232,6 +242,7 @@ export default function ChatPage() {
 
       const rows = (data ?? []) as MessageRow[];
       setMessages(rows);
+      knownMessageIdsRef.current = new Set(rows.map((row) => row.id));
       await loadSignedUrls(rows);
       setLoading(false);
     }
@@ -256,8 +267,14 @@ export default function ChatPage() {
             .order("created_at", { ascending: true });
 
           const rows = (data ?? []) as MessageRow[];
+          const incoming = rows.filter((row) => !knownMessageIdsRef.current.has(row.id) && row.sender_id !== currentUserId);
+          knownMessageIdsRef.current = new Set(rows.map((row) => row.id));
           setMessages(rows);
           await loadSignedUrls(rows);
+          if (incoming.length && typeof Notification !== "undefined" && Notification.permission === "granted") {
+            const latest = incoming[incoming.length - 1];
+            new Notification(`رسالة جديدة من ${latest.sender_name}`, { body: latest.body || "أرسل مرفقًا", icon: "/icons/icon-192.png", tag: activeRoomId });
+          }
         },
       )
       .subscribe();
@@ -621,6 +638,13 @@ export default function ChatPage() {
     router.refresh();
   }
 
+  async function enableNotifications() {
+    if (typeof Notification === "undefined") return setError("هذا الجهاز لا يدعم الإشعارات.");
+    const permission = await Notification.requestPermission();
+    setNotificationsEnabled(permission === "granted");
+    if (permission !== "granted") setError("فعّل الإشعارات للموقع من إعدادات المتصفح.");
+  }
+
   const conversationName =
     conversationType === "room"
       ? selectedRoom?.name ?? ""
@@ -629,9 +653,9 @@ export default function ChatPage() {
         : selectedMember?.name ?? "";
 
   return (
-    <main dir="rtl" className="min-h-screen bg-[#03040a] px-4 py-6 text-white sm:px-6">
+    <main dir="rtl" className="min-h-screen bg-[#0b141a] px-3 py-4 text-white sm:px-5">
       <div className="mx-auto max-w-7xl">
-      <header className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-emerald-200/10 bg-emerald-300/[.04] p-5">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-white/5 bg-[#202c33] p-5 shadow-xl">
         <div><p className="text-xs font-black tracking-[.25em] text-emerald-200/55">ALAFREET FAMILY CHAT</p><h1 className="mt-2 text-3xl font-black">الواتساب العائلي</h1><p className="mt-1 text-sm text-white/40">محادثات العائلة الخاصة والآمنة</p></div>
         <button type="button" onClick={() => router.push("/v9/home")} className="rounded-2xl border border-white/10 px-5 py-3 font-black">البيت الرقمي</button>
       </header>
@@ -645,8 +669,8 @@ export default function ChatPage() {
         </button>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
-        <aside className="rounded-[28px] border border-white/10 bg-white/5 p-4">
+      <div className="grid gap-3 xl:grid-cols-[330px_minmax(0,1fr)]">
+        <aside className="rounded-[24px] border border-white/5 bg-[#111b21] p-4 shadow-xl">
           <h2 className="px-2 text-lg font-black">القروبات</h2>
 
           <div className="mt-4 space-y-2">
@@ -713,8 +737,8 @@ export default function ChatPage() {
           </div>
         </aside>
 
-        <section className="flex min-h-[720px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#070a18]">
-          <header className="border-b border-white/10 p-5">
+        <section className="flex min-h-[720px] flex-col overflow-hidden rounded-[24px] border border-white/5 bg-[#0b141a] shadow-xl">
+          <header className="border-b border-white/5 bg-[#202c33] p-4">
             <div className="flex items-center gap-4">
               {selectedRoom ? (
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/10 text-4xl">
@@ -746,6 +770,7 @@ export default function ChatPage() {
                 🔎 بحث
               </button>
               <button type="button" onClick={() => setVideoCallOpen(true)} className="rounded-2xl bg-emerald-400/15 px-4 py-3 font-black text-emerald-200">📹 مكالمة فيديو</button>
+              <button type="button" onClick={enableNotifications} className={`rounded-2xl px-4 py-3 font-black ${notificationsEnabled?"bg-emerald-400 text-black":"bg-white/10 text-white"}`}>{notificationsEnabled?"🔔 الإشعارات مفعلة":"🔕 تفعيل الإشعارات"}</button>
             </div>
 
             {searchOpen && (
@@ -759,7 +784,7 @@ export default function ChatPage() {
             )}
           </header>
 
-          <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
+          <div className="flex-1 space-y-4 overflow-y-auto bg-[radial-gradient(circle_at_20%_10%,rgba(0,168,132,.05),transparent_24%),linear-gradient(rgba(11,20,26,.94),rgba(11,20,26,.94))] p-4 sm:p-6">
             {messages.some((message) => message.is_pinned) && (
               <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4">
                 <p className="font-black text-amber-200">
@@ -809,7 +834,7 @@ export default function ChatPage() {
             <div ref={endRef} />
           </div>
 
-          <div className="border-t border-white/10 bg-black/20 p-4">
+          <div className="border-t border-white/5 bg-[#202c33] p-4">
             {editingMessage && (
               <NoticeBox
                 title="تعديل الرسالة"
