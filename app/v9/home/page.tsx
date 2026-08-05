@@ -216,8 +216,8 @@ export default function HomeEnginePage() {
 
               <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-left">
                 <p className="text-[10px] text-white/30">الطقس</p>
-                <p className="mt-1 text-2xl font-black text-amber-200">34°</p>
-                <p className="mt-1 text-xs text-white/35">العين • غائم جزئيًا</p>
+                <p className="mt-1 text-2xl font-black text-amber-200">{homeWeather?.metric?.temp ?? "--"}°</p>
+                <p className="mt-1 text-xs text-white/35">محطة البيت • IALAIN19</p>
               </div>
             </div>
 
@@ -319,7 +319,7 @@ export default function HomeEnginePage() {
             </div>
 
             <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-              {[["جبل حفيت", "34°"], ["العين", "35°"], ["أبوظبي", "33°"]].map(([city, temp]) => (
+              {[["الحرارة", `${homeWeather?.metric?.temp ?? "--"}°`], ["المحسوسة", `${homeWeather?.metric?.heatIndex ?? "--"}°`], ["الرطوبة", `${homeWeather?.humidity ?? "--"}%`]].map(([city, temp]) => (
                 <div key={city} className="rounded-2xl bg-black/20 p-3">
                   <strong className="block text-sm">{temp}</strong>
                   <span className="mt-1 block text-[10px] text-white/30">{city}</span>
@@ -441,11 +441,11 @@ export default function HomeEnginePage() {
 
         <section className="mt-6 rounded-[30px] border border-white/10 bg-white/[0.035] p-6">
           <p className="text-xs font-bold text-violet-200/55">FAMILY STORY</p>
-          <h2 className="mt-2 text-2xl font-black">قصة اليوم</h2>
+          <h2 className="mt-2 text-2xl font-black">ملخص اليوم الحقيقي</h2>
           <p className="mt-4 max-w-4xl text-sm leading-8 text-white/40">
-            اليوم كان لدى خالد متابعة جامعية، وتبقى لريم واجبان في المدرسة،
-            بينما أمل أضافت تذكيرًا جديدًا للعائلة. هذه القصة ستتكون تلقائيًا
-            كل ليلة من الأحداث والذكريات والإنجازات.
+            يوجد {calendarEvents.filter((event) => new Date(event.startsAt).toDateString() === now.toDateString()).length} موعد اليوم،
+            و{calendarEvents.filter((event) => new Date(event.startsAt).getTime() > now.getTime()).length} موعد قادم محفوظ في تقويم العائلة.
+            {nextCalendarEvent ? ` أقربها: ${nextCalendarEvent.title} لـ ${nextCalendarEvent.memberName}.` : " لا يوجد موعد قريب حاليًا."}
           </p>
         </section>
       </div>
