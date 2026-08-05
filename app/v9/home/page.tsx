@@ -26,6 +26,15 @@ const prayerNames: Record<string, string> = {
   Isha: "العشاء",
 };
 
+const quickActionRoutes = [
+  "/v9/calendar?create=reminder",
+  "/v9/school?create=assignment",
+  "/v9/calendar?create=appointment",
+  "/v9/time-capsule?create=memory",
+  "/maintenance",
+  "/v9/balance?create=task",
+];
+
 function prayerAt(base: Date, value: string, addDay = false) {
   const match = value?.match(/(\d{1,2}):(\d{2})/);
   if (!match) return null;
@@ -415,10 +424,11 @@ export default function HomeEnginePage() {
             <p className="text-xs font-bold text-emerald-200/55">QUICK ACTIONS</p>
             <h2 className="mt-2 text-2xl font-black">إضافة سريعة</h2>
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {quickActions.map((action) => (
+              {quickActions.map((action, index) => (
                 <button
                   key={action.title}
                   type="button"
+                  onClick={() => router.push(quickActionRoutes[index] ?? "/v9/home")}
                   className="rounded-2xl border border-white/8 bg-black/20 p-4 text-center transition hover:border-amber-200/20 hover:bg-amber-300/[0.045]"
                 >
                   <span className="block text-xl text-amber-200">{action.icon}</span>
