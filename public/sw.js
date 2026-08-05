@@ -1,4 +1,4 @@
-const CACHE = "alafreet-static-v10-4";
+const CACHE = "alafreet-static-v10-5";
 const STATIC_ASSETS = [
   "/manifest.webmanifest",
   "/icons/icon-192.png",
