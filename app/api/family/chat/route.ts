@@ -51,9 +51,10 @@ export async function GET(request: Request) {
   const selected = url.searchParams.get("conversation") || "group:family";
   if (!mayAccess(auth.member.id, selected)) return NextResponse.json({ error: "لا تملك صلاحية فتح هذه المحادثة." }, { status: 403 });
 
-  const [{ data: members }, { data: rows, error }] = await Promise.all([
+  const [{ data: members }, { data: rows, error }, { data: statusRows }] = await Promise.all([
     auth.admin.from("family_members").select("id,name_ar,role,color").not("auth_user_id", "is", null).order("name_ar"),
     auth.admin.from("core_events").select("id,title,details,actor_id,metadata,created_at").eq("event_type", "family.chat_message").eq("metadata->>conversationId", selected).order("created_at", { ascending: true }).limit(250),
+    auth.admin.from("core_events").select("id,details,actor_id,metadata,created_at").eq("event_type", "family.chat_status").gte("metadata->>expiresAt", new Date().toISOString()).order("created_at", { ascending: false }),
   ]);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
@@ -72,7 +73,11 @@ export async function GET(request: Request) {
     }
     return { id: row.id, text: row.details ?? "", senderId: row.actor_id, senderName: row.metadata?.senderName ?? "فرد من العائلة", createdAt: row.created_at, mediaUrl, mediaType: row.metadata?.mediaType ?? "", mediaName: row.metadata?.mediaName ?? "", mine: row.actor_id === auth.member.id };
   }));
-  return NextResponse.json({ viewer: auth.member, members: members ?? [], conversations, selected, messages });
+  const statuses = await Promise.all((statusRows ?? []).map(async (row) => {
+    const { data } = await auth.admin.storage.from("family-chat-v2").createSignedUrl(row.metadata?.mediaPath ?? "", 3600);
+    return { id: row.id, senderId: row.actor_id, senderName: row.metadata?.senderName ?? "فرد من العائلة", caption: row.details ?? "", mediaUrl: data?.signedUrl ?? "", mediaType: row.metadata?.mediaType ?? "", createdAt: row.created_at };
+  }));
+  return NextResponse.json({ viewer: auth.member, members: members ?? [], conversations, selected, messages, statuses });
 }
 
 export async function POST(request: Request) {

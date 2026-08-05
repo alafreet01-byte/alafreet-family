@@ -18,6 +18,7 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const file = form.get("file");
   const conversationId = String(form.get("conversationId") ?? "group:family");
+  const mode = String(form.get("mode") ?? "message");
   const privateMembers = conversationId.startsWith("private:") ? conversationId.slice(8).split("--") : [];
   if (privateMembers.length && !privateMembers.includes(member.id)) return NextResponse.json({ error: "لا تملك صلاحية الإرسال هنا." }, { status: 403 });
   if (conversationId === "group:girls" && !GIRLS.has(member.id)) return NextResponse.json({ error: "هذه المجموعة لأعضائها فقط." }, { status: 403 });
@@ -32,7 +33,13 @@ export async function POST(request: Request) {
   const path = `${member.id}/${crypto.randomUUID()}.${extension}`;
   const { error: uploadError } = await admin.storage.from(BUCKET).upload(path, await file.arrayBuffer(), { contentType: file.type });
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 400 });
-  const { error } = await admin.from("core_events").insert({ event_type: "family.chat_message", title: "مرفق عائلي", details: String(form.get("caption") ?? "").trim().slice(0, 1000), actor_id: member.id, metadata: { conversationId, senderName: member.name_ar, messageType: "media", mediaPath: path, mediaName: file.name, mediaType: file.type } });
+  const { error } = await admin.from("core_events").insert({
+    event_type: mode === "status" ? "family.chat_status" : "family.chat_message",
+    title: mode === "status" ? "حالة عائلية" : "مرفق عائلي",
+    details: String(form.get("caption") ?? "").trim().slice(0, 1000),
+    actor_id: member.id,
+    metadata: { conversationId, senderName: member.name_ar, messageType: "media", mediaPath: path, mediaName: file.name, mediaType: file.type, ...(mode === "status" ? { expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() } : {}) },
+  });
   if (error) { await admin.storage.from(BUCKET).remove([path]); return NextResponse.json({ error: error.message }, { status: 400 }); }
   return NextResponse.json({ ok: true });
 }
