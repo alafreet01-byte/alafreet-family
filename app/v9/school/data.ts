@@ -27,8 +27,8 @@ export const students: Student[] = [
     platform: "Toddle",
     color: "#ffc27a",
     icon: "أ",
-    completed: 3,
-    total: 5,
+    completed: 0,
+    total: 0,
   },
   {
     id: "reem",
@@ -37,8 +37,8 @@ export const students: Student[] = [
     platform: "Toddle",
     color: "#dca6ff",
     icon: "ر",
-    completed: 4,
-    total: 6,
+    completed: 0,
+    total: 0,
   },
   {
     id: "aisha",
@@ -47,8 +47,8 @@ export const students: Student[] = [
     platform: "Toddle",
     color: "#ffabc2",
     icon: "ع",
-    completed: 2,
-    total: 3,
+    completed: 0,
+    total: 0,
   },
 ];
 

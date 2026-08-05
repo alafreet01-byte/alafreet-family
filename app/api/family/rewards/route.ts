@@ -48,7 +48,31 @@ export async function POST(request: Request) {
   const action = String(body.action ?? "");
   const parent = isParent(auth.member.role);
 
-  if (action === "grant") {
+  if (action === "set_balance") {
+    if (!parent) return NextResponse.json({ error: "تعديل العداد للوالدين فقط." }, { status: 403 });
+    const childId = String(body.childId ?? "");
+    const value = Number(body.value);
+    if (!childId || !Number.isInteger(value) || value < 0 || value > 100000) {
+      return NextResponse.json({ error: "أدخل قيمة صحيحة للعداد." }, { status: 400 });
+    }
+    const { data: child } = await auth.admin.from("family_members").select("id, name_ar").eq("id", childId).in("role", ["student", "child"]).maybeSingle();
+    if (!child) return NextResponse.json({ error: "حساب الطفل غير موجود." }, { status: 404 });
+    const { data: pointEvents, error: readError } = await auth.admin.from("core_events").select("id, metadata").eq("event_type", "family.reward_points");
+    if (readError) return NextResponse.json({ error: readError.message }, { status: 400 });
+    const ids = (pointEvents ?? []).filter((event) => String(event.metadata?.childId ?? "") === childId).map((event) => event.id);
+    if (ids.length) {
+      const { error: deleteError } = await auth.admin.from("core_events").delete().in("id", ids);
+      if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 400 });
+    }
+    if (value > 0) {
+      const { error: insertError } = await auth.admin.from("core_events").insert({ event_type: "family.reward_points", title: "ضبط العداد بواسطة الوالدين", actor_id: auth.member.id, metadata: { childId, childName: child.name_ar, points: value, manual: true } });
+      if (insertError) return NextResponse.json({ error: insertError.message }, { status: 400 });
+    }
+  } else if (action === "reset_all_balances") {
+    if (!parent) return NextResponse.json({ error: "تصفير العدادات للوالدين فقط." }, { status: 403 });
+    const { error } = await auth.admin.from("core_events").delete().eq("event_type", "family.reward_points");
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  } else if (action === "grant") {
     if (!parent) return NextResponse.json({ error: "منح النقاط للوالدين فقط." }, { status: 403 });
     const points = Number(body.points); const childId = String(body.childId ?? ""); const reason = String(body.reason ?? "").trim();
     if (!childId || !reason || !Number.isInteger(points) || points === 0 || Math.abs(points) > 1000) return NextResponse.json({ error: "أدخل الطفل والسبب وعدد نقاط صحيحًا." }, { status: 400 });

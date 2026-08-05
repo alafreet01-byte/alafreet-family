@@ -242,9 +242,9 @@ export default function SchoolCenterPage() {
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
         <section className="grid gap-4 lg:grid-cols-3">
           {visibleStudents.map((student, index) => {
-            const percentage = Math.round(
-              (student.completed / student.total) * 100,
-            );
+            const percentage = student.total > 0
+              ? Math.round((student.completed / student.total) * 100)
+              : 0;
 
             return (
               <motion.button
